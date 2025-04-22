@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@keyframes fade-in-from-bottom {
+
+    0%{
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    100%{
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fade-out-from-top {
+
+    0%{
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    100%{
+        opacity: 0;
+        transform: translateY(10px);
+    }
+}
+
+
+
+.mainapp::-webkit-scrollbar {
+    display: none;
+}
+  
+.mainapp{
+    overflow: hidden;
+}
+
+
+.card{
+    @apply flex animate-[fade-in-from-bottom_0.5s_ease-in-out] flex-col duration-300 ease-in hover:scale-105 rounded-2xl flex-wrap justify-between p-2 min-h-[10vh] text-red-50;
+    background-color: rgba(0, 0, 0, 0.625);
+}
+
+.card h4{
+@apply text-xs font-light
+}
+
+.card span{
+@apply text-lg font-semibold
+}
+
+.card p{
+@apply font-medium text-[0.6rem] self-end
+}
+
+

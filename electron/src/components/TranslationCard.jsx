@@ -1,14 +1,19 @@
 import React, {useEffect, useRef, useState} from "react";
-import TranslationCardEmitter from "../emitters/TranslationCardEmitter";
 
-const TranslationCard = ({id, translationText, originalText, confidence}) => {
+const TranslationCard = ({id, translationText, originalText, confidence, onFadeComplete}) => {
     const fadeTime = 500;
     const timeout = 5000;
 
     const [hovered, setHovered] = useState(false);
-    const [fadingOut, setFadingOut] = useState(false);
+    // const [fadingOut, setFadingOut] = useState(false);
 
     const timeoutTimer = useRef(null);
+
+    const onFadeCompleteRef = useRef(onFadeComplete);
+
+    useEffect(() => {
+        onFadeCompleteRef.current = onFadeComplete;
+    }, [onFadeComplete]);
 
     useEffect(() => {
         if (hovered) {
@@ -19,10 +24,10 @@ const TranslationCard = ({id, translationText, originalText, confidence}) => {
             console.log(`Starting timeout for card ${id}`);
             timeoutTimer.current = setTimeout(() => {
                 console.log(`Fading out card ${id}`);
-                setFadingOut(true);
+                // setFadingOut(true);
                 setTimeout(() => {
-                    TranslationCardEmitter.publish("OPR:dismiss_translation_card", [id]);
-                }, fadeTime + 50);
+                    onFadeCompleteRef.current();
+                }, fadeTime + 100);
             }, timeout);
             return;
         }
@@ -31,7 +36,7 @@ const TranslationCard = ({id, translationText, originalText, confidence}) => {
     }, [hovered, id]);
 
     return (
-        <div className={`card duration-[${fadeTime}] ease-in-out ${fadingOut ? "opacity-0" : "opacity-100"}`} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
+        <div className={`card`} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
             <h4>
                 Translation: <span>{translationText}</span>
             </h4>

@@ -14,6 +14,9 @@ function App() {
         const testList = [
             {translationText: "Hello World", originalText: "Hello World", confidence: "50"},
             {translationText: "Hello World", originalText: "Hello World", confidence: "50"},
+            {translationText: "Hello World", originalText: "Hello World", confidence: "50"},
+            {translationText: "Hello World", originalText: "Hello World", confidence: "50"},
+            {translationText: "Hello World", originalText: "Hello World", confidence: "50"},
         ];
 
         _translationCardEmitter.publishList("OPR:new_translation_card", testList);

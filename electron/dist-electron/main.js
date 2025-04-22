@@ -12,15 +12,7 @@ let tray;
 function createWindow() {
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width, height } = primaryDisplay.workAreaSize;
-  win = new BrowserWindow({
-    // transparent: true,    
-    // frame: false,
-    // skipTaskbar: true,
-    // alwaysOnTop: true,
-    // focusable: false,
-    // So far, these haven't been working out
-    // fullscreen: true,
-    // kiosk: true,
+  let browserWindowProperties = {
     width,
     height,
     resizable: false,
@@ -28,11 +20,14 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs")
     }
-  });
-  win.webContents.openDevTools();
+  };
+  win = new BrowserWindow(browserWindowProperties);
   win.webContents.on("did-finish-load", () => {
     win == null ? void 0 : win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
     win == null ? void 0 : win.setHasShadow(false);
+    {
+      win == null ? void 0 : win.webContents.openDevTools();
+    }
     win == null ? void 0 : win.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
   });
   if (VITE_DEV_SERVER_URL) {

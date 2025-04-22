@@ -1,7 +1,8 @@
-import React, {useState, useEffect, useRef, useCallback} from "react";
+import React, {useState, useEffect, useCallback} from "react";
 import TranslationCardEmitter from "../emitters/TranslationCardEmitter";
 import TranslationCard from "../components/TranslationCard";
 import GetRandomID from "../utilities/RandomID";
+import {TransitionGroup, CSSTransition} from "react-transition-group";
 
 function TranslationCardRack() {
     const [cards, setCards] = useState([]);
@@ -17,19 +18,10 @@ function TranslationCardRack() {
         [setCards]
     );
 
-    const dismissCard = useCallback(
-        id => {
-            const updatedCards = [];
-            cards.forEach(card => {
-                if (card.id !== id) {
-                    updatedCards.push(card);
-                }
-            });
-            console.log(updatedCards);
-            setCards(updatedCards);
-        },
-        [cards, setCards]
-    );
+    const dismissCard = useCallback(id => {
+        console.log(`Dismissing card ${id}`);
+        setCards(prevCards => prevCards.filter(card => card.id !== id));
+    }, []);
 
     // Subscribes the events
     useEffect(() => {
@@ -38,10 +30,20 @@ function TranslationCardRack() {
     }, [addNewCards, dismissCard]);
 
     return (
-        <div className={`flex-col h-screen w-[20vw] overflow-hidden duration-300 ease-in-out p-2 *:m-5`} style={{backgroundColor: "rgba(255, 0, 0, 0.19)"}}>
-            {cards.map(card => (
-                <TranslationCard {...card} />
-            ))}
+        <div className={`flex flex-col h-screen w-[20vw] overflow-hidden duration-300 ease-in-out p-2 *:m-5`}>
+            <TransitionGroup component={null}>
+                {cards.map(card => (
+                    <CSSTransition key={card.id} timeout={500} classNames={"card-transition"}>
+                        <TranslationCard
+                            key={card.id}
+                            {...card}
+                            onFadeComplete={() => {
+                                TranslationCardEmitter.publish("OPR:dismiss_translation_card", [card.id]);
+                            }}
+                        />
+                    </CSSTransition>
+                ))}
+            </TransitionGroup>
         </div>
     );
 }

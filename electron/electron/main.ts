@@ -35,49 +35,51 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 
 let win: BrowserWindow | null
 let tray: Tray | null
 
+
+const DEBUG_MODE = true
+
+
 function createWindow() {
 
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width, height } = primaryDisplay.workAreaSize;
 
-  win = new BrowserWindow({
-    // transparent: true,    
-    // frame: false,
-    // skipTaskbar: true,
-    // alwaysOnTop: true,
-    // focusable: false,
 
-
-    // So far, these haven't been working out
-
-    // fullscreen: true,
-    // kiosk: true,
-
+  let browserWindowProperties: Electron.BrowserWindowConstructorOptions = {
     width: width,
     height: height,
-    resizable: false,
-    
+    resizable: false,    
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
     },
-  })
+  }
 
+  if (!DEBUG_MODE){
+    browserWindowProperties = {
+      ...browserWindowProperties,
+      transparent: true,    
+      frame: false,
+      skipTaskbar: true,
+      alwaysOnTop: true,
+      focusable: false,
+    }
 
-  // This opens the console. Uncomment as needed
-  win.webContents.openDevTools()
+  }
+  win = new BrowserWindow(browserWindowProperties)
 
   // Test active push message to Renderer-process.
   win.webContents.on('did-finish-load', () => {
 
-    //win?.setAlwaysOnTop(true, "screen-saver")
-    // win?.setAlwaysOnTop(true, 'floating')
-
-
     win?.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true})
     win?.setHasShadow(false)
 
-    // win?.setIgnoreMouseEvents(true, { forward: true })
+    if (DEBUG_MODE){
+      win?.webContents.openDevTools()
+    }
+    else {
+      win?.setIgnoreMouseEvents(true, { forward: true })
+    }
 
 
     win?.webContents.send('main-process-message', (new Date).toLocaleString())

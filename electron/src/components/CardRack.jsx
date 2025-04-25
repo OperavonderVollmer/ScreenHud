@@ -1,17 +1,17 @@
 import React, {useState, useEffect, useCallback} from "react";
-import TranslationCardEmitter from "../emitters/TranslationCardEmitter";
-import TranslationCard from "../components/TranslationCard";
+import Emitter from "../emitters/Emitter";
 import GetRandomID from "../utilities/RandomID";
 import {TransitionGroup, CSSTransition} from "react-transition-group";
+import Card from "./Card";
 
-function TranslationCardRack() {
+function CardRack() {
     const [cards, setCards] = useState([]);
 
     const addNewCards = useCallback(
         newCards => {
             const updatedCards = [];
             newCards.forEach(card => {
-                updatedCards.push({id: GetRandomID(), ...card});
+                updatedCards.push({id: GetRandomID(), content: card});
             });
             setCards(prevCards => [...prevCards, ...updatedCards]);
         },
@@ -25,8 +25,8 @@ function TranslationCardRack() {
 
     // Subscribes the events
     useEffect(() => {
-        TranslationCardEmitter.subscribe("OPR:new_translation_card", addNewCards);
-        TranslationCardEmitter.subscribe("OPR:dismiss_translation_card", dismissCard);
+        Emitter.subscribe("OPR:new_card", addNewCards);
+        Emitter.subscribe("OPR:dismiss_card", dismissCard);
     }, [addNewCards, dismissCard]);
 
     return (
@@ -34,12 +34,13 @@ function TranslationCardRack() {
             <TransitionGroup component={null}>
                 {cards.map(card => (
                     <CSSTransition key={card.id} timeout={500} classNames={"card-transition"}>
-                        <TranslationCard
+                        <Card
                             key={card.id}
-                            {...card}
                             onFadeComplete={() => {
-                                TranslationCardEmitter.publish("OPR:dismiss_translation_card", [card.id]);
+                                Emitter.publish("OPR:dismiss_card", [card.id]);
                             }}
+                            id={card.id}
+                            content={card.content}
                         />
                     </CSSTransition>
                 ))}
@@ -48,4 +49,4 @@ function TranslationCardRack() {
     );
 }
 
-export default TranslationCardRack;
+export default CardRack;

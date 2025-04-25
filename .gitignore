@@ -1,1 +1,3 @@
 /screenhud-electron
+electron/.env
+electron/env.env

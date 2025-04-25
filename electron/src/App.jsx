@@ -1,7 +1,6 @@
 import {useEffect, useRef} from "react";
-// import TranslationCard from "./components/TranslationCard";
-import _translationCardEmitter from "./emitters/TranslationCardEmitter";
-import TranslationCardRack from "./components/TranslationCardRack";
+import Emitter from "./emitters/Emitter";
+import CardRack from "./components/CardRack";
 
 function App() {
     const firstRun = useRef(true);
@@ -11,26 +10,20 @@ function App() {
             return;
         }
 
-        const testList = [
-            {translationText: "Hello World", originalText: "Hello World", confidence: "50"},
-            {translationText: "Hello World", originalText: "Hello World", confidence: "50"},
-            {translationText: "Hello World", originalText: "Hello World", confidence: "50"},
-            {translationText: "Hello World", originalText: "Hello World", confidence: "50"},
-            {translationText: "Hello World", originalText: "Hello World", confidence: "50"},
-        ];
-
-        _translationCardEmitter.publishList("OPR:new_translation_card", testList);
-
-        // testList.forEach(card => {
-        //     TranslationCardEmitter.publish("OPR:new_translation_card", [card]);
-        // });
-
         firstRun.current = false;
-    });
+
+        const testList = [
+            {Translation: "Hello World", Original: "Hello World", Confidence: "50"},
+            {Translation: "Hello World", Original: "Hello World", Confidence: "50"},
+            {Translation: "Hello World", Original: "Hello World", Confidence: "50"},
+        ];
+        Emitter.publishList("OPR:new_card", testList);
+    }, []);
 
     return (
         <div className="mainapp flex flex-row-reverse justify-between">
-            <TranslationCardRack />
+            {/* <TranslationCardRack /> */}
+            <CardRack />
         </div>
     );
 }

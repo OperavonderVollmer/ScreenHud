@@ -59,11 +59,6 @@
     transition: all 0.3s ease-in-out; 
 }
 
-/* .card.fading-out{
-    animation: card-fading-out 0.25s ease-in-out forwards;
-    /* animation: card-exit-stage-right 0.25s ease-in-out forwards; 
-}
-*/
 
 .card h4{
     @apply text-xs font-light

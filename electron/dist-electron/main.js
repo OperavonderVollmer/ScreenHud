@@ -1,7 +1,7 @@
 var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-import { app, BrowserWindow, screen } from "electron";
+import { app, BrowserWindow, ipcMain, screen, Tray, Menu } from "electron";
 import { fileURLToPath } from "node:url";
 import path$1 from "node:path";
 import { Buffer as Buffer$1 } from "buffer";
@@ -19,10 +19,19 @@ __publicField(ServerConfigs, "HUD_PORT", Number(process$1.env.HUD_PORT ?? 56e3))
 class _Server {
   constructor() {
     this.mainWindow = null;
+    this.controlWindow = null;
   }
   win(mainWindow) {
     this.mainWindow = mainWindow;
   }
+  control(controlWindow) {
+    this.controlWindow = controlWindow;
+  }
+  // expected payload
+  // type: type of payload
+  // timestamp: timestamp
+  // target: whether to send to main or control window
+  // result: dictionary
   startServer() {
     const server = net.createServer((socket) => {
       console.log("Client connected from: ", socket.remoteAddress + ":" + socket.remotePort);
@@ -41,11 +50,18 @@ class _Server {
           console.log(timestamp + "Received payload:", payloadJSON);
           try {
             const payload = JSON.parse(payloadJSON);
-            if (!this.mainWindow || this.mainWindow.isDestroyed()) {
-              return;
+            let w = null;
+            switch (payload.target) {
+              case "main":
+                w = this.mainWindow;
+                break;
+              case "control":
+                w = this.controlWindow;
+                break;
             }
-            this.mainWindow.webContents.send("type-change", payload.type);
-            this.mainWindow.webContents.send("payload-send", payload.results);
+            if (!w || w.isDestroyed()) return;
+            w.webContents.send("type-change", payload.type);
+            w.webContents.send("payload-send", payload.results);
           } catch (error) {
             console.log("Error parsing payload:", error);
           }
@@ -79,6 +95,78 @@ class _Server {
   }
 }
 const OPRServer = new _Server();
+function GetRandomID() {
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+}
+class _ControlSettings {
+  constructor() {
+    this.id = GetRandomID();
+    this.window = null;
+    this.control = null;
+    this.width = 0;
+    this.height = 0;
+    this.offset = 0;
+    console.log("ControlSettings created. ID: ", this.id);
+  }
+  main(window) {
+    if (window) {
+      console.log("Window is null");
+      return false;
+    }
+    console.log(`Window created for ${this.id}`);
+    this.window = window;
+  }
+  control(window) {
+    if (window) {
+      console.log("Window is null");
+      return false;
+    }
+    console.log(`Control window referenced for ${this.id}`);
+    this.control = window;
+  }
+  checkID() {
+    return this.id;
+  }
+  size(width, height) {
+    this.width = width;
+    this.height = height;
+  }
+  setOffset(offset) {
+    this.offset = offset;
+  }
+  confirmWindow() {
+    if (!this.window) {
+      console.log("Window is null");
+      return false;
+    }
+    if (this.window.isDestroyed()) {
+      console.log("Main window is destroyed");
+      return false;
+    }
+    return true;
+  }
+  confirmControl() {
+    if (!this.control) {
+      console.log("Window is null");
+      return false;
+    }
+    if (this.control.isDestroyed()) {
+      console.log("Main window is destroyed");
+      return false;
+    }
+    return true;
+  }
+  communicate(type, event, payload) {
+    if (!this.confirmWindow()) return;
+    this.window.webContents.send("type-change", type);
+    this.window.webContents.send(event, payload);
+  }
+  move(x, y) {
+    if (!this.confirmControl()) return;
+    this.control.setPosition(x, y);
+  }
+}
+const ControlSettings = new _ControlSettings();
 function getDefaultExportFromCjs(x) {
   return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, "default") ? x["default"] : x;
 }
@@ -359,6 +447,8 @@ const MAIN_DIST = path$1.join(process$2.env.APP_ROOT, "dist-electron");
 const RENDERER_DIST = path$1.join(process$2.env.APP_ROOT, "dist");
 process$2.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path$1.join(process$2.env.APP_ROOT, "public") : RENDERER_DIST;
 let win = null;
+let control = null;
+let tray = null;
 function createWindow() {
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width, height } = primaryDisplay.workAreaSize;
@@ -368,22 +458,66 @@ function createWindow() {
     resizable: false,
     autoHideMenuBar: true,
     webPreferences: {
-      preload: path$1.join(__dirname, "preload.mjs")
+      preload: path$1.join(__dirname, "preload_main.mjs"),
+      contextIsolation: true,
+      nodeIntegration: false
     }
   };
+  {
+    browserWindowProperties = {
+      ...browserWindowProperties,
+      transparent: true,
+      frame: false,
+      skipTaskbar: true,
+      alwaysOnTop: true,
+      focusable: false
+    };
+  }
   win = new BrowserWindow(browserWindowProperties);
   win.webContents.on("did-finish-load", () => {
     win == null ? void 0 : win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
     win == null ? void 0 : win.setHasShadow(false);
     {
-      win == null ? void 0 : win.webContents.openDevTools();
+      win == null ? void 0 : win.setIgnoreMouseEvents(true, { forward: true });
     }
-    win == null ? void 0 : win.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
   });
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL);
   } else {
     win.loadFile(path$1.join(RENDERER_DIST, "index.html"));
+  }
+}
+function createControl() {
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { width: w, height: h } = primaryDisplay.workAreaSize;
+  const width = w * 0.2;
+  const height = h * 0.5;
+  let browserWindowProperties = {
+    width,
+    height,
+    autoHideMenuBar: true,
+    frame: false,
+    x: -10,
+    y: -10,
+    webPreferences: {
+      preload: path$1.join(__dirname, "preload_control.mjs"),
+      contextIsolation: true,
+      nodeIntegration: false
+    }
+  };
+  control = new BrowserWindow(browserWindowProperties);
+  control.webContents.on("did-finish-load", () => {
+    control == null ? void 0 : control.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+    control == null ? void 0 : control.setHasShadow(false);
+    {
+      control == null ? void 0 : control.webContents.openDevTools();
+    }
+    control == null ? void 0 : control.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
+  });
+  if (VITE_DEV_SERVER_URL) {
+    control.loadURL(`${VITE_DEV_SERVER_URL}control.html`);
+  } else {
+    control.loadFile(path$1.join(RENDERER_DIST, "control.html"));
   }
 }
 app.on("window-all-closed", () => {
@@ -397,10 +531,47 @@ app.on("activate", () => {
     createWindow();
   }
 });
+function createTray() {
+  const trayIcon = path$1.join(process$2.env.VITE_PUBLIC, "HUD2.png");
+  tray = new Tray(trayIcon);
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: "Exit",
+      click: () => {
+        app.quit();
+      }
+    }
+  ]);
+  tray.setToolTip("ScreenHud");
+  tray.setContextMenu(contextMenu);
+}
 app.whenReady().then(() => {
   createWindow();
+  createControl();
   OPRServer.win(win);
   OPRServer.startServer();
+  ControlSettings.main(win);
+  {
+    createTray();
+  }
+});
+ipcMain.on("move-window", (event, x, y) => {
+  const w = BrowserWindow.fromWebContents(event.sender);
+  if (w) {
+    w.setPosition(x, y, true);
+  } else {
+    console.error("Failed to find window to move.");
+  }
+});
+ipcMain.handle("get-window-size", (event) => {
+  const win2 = BrowserWindow.fromWebContents(event.sender);
+  if (win2) {
+    const size = win2.getSize();
+    return { width: size[0], height: size[1] };
+  } else {
+    console.error("Failed to find window to get size.");
+    return { width: 0, height: 0 };
+  }
 });
 export {
   MAIN_DIST,

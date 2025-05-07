@@ -1,38 +1,72 @@
 import { defineConfig } from 'vite'
 import path from 'node:path'
-import electron from 'vite-plugin-electron/simple'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
+import electron from 'vite-plugin-electron'
 
-// https://vitejs.dev/config/
+// Main Vite Config
 export default defineConfig({
   server: {
-    "hmr":{
-      overlay: false
-    }
+    hmr: { overlay: false },
+    fs: { allow: ['.', '../'] },
+  },
+  base: './',
+  build: {
+    outDir: 'dist',
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+        control: path.resolve(__dirname, 'control.html'),
+      },
+      output: {
+        inlineDynamicImports: false,
+      },
+    },
   },
   plugins: [
     react(),
     tailwindcss(),
     tsconfigPaths(),
-    electron({
-      main: {
-        // Shortcut of `build.lib.entry`.
+    electron([
+      {
+        // Electron Main Process
         entry: 'electron/main.js',
       },
-      preload: {
-        // Shortcut of `build.rollupOptions.input`.
-        // Preload scripts may contain Web assets, so use the `build.rollupOptions.input` instead `build.lib.entry`.
-        input: path.join(__dirname, 'electron/preload.ts'),
+      {
+        // Electron Preload for Main Window
+        entry: 'electron/preload_main.js',
+        vite: {
+          build: {
+            outDir: 'dist-electron',
+            rollupOptions: {
+              input: 'electron/preload_main.js',
+              output: { 
+                inlineDynamicImports: false,                
+                format: 'esm',
+                entryFileNames: '[name].mjs',
+               },
+            },
+          },
+        },
       },
-      // Ployfill the Electron and Node.js API for Renderer process.
-      // If you want use Node.js in Renderer process, the `nodeIntegration` needs to be enabled in the Main process.
-      // See 👉 https://github.com/electron-vite/vite-plugin-electron-renderer
-      renderer: process.env.NODE_ENV === 'test'
-        // https://github.com/electron-vite/vite-plugin-electron-renderer/issues/78#issuecomment-2053600808
-        ? undefined
-        : {},
-    }),
+      {
+        // Electron Preload for Control Window
+        entry: 'electron/preload_control.js',
+        vite: {
+          build: {
+            outDir: 'dist-electron',
+            rollupOptions: {
+              input: 'electron/preload_control.js',
+              output: { 
+                inlineDynamicImports: false,
+                format: 'esm',
+                entryFileNames: '[name].mjs',
+               },
+            },
+          },
+        },
+      },
+    ]),
   ],
 })

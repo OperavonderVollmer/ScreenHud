@@ -10,11 +10,23 @@ class ServerConfigs {
 class _Server {
     constructor() {
         this.mainWindow = null;
+        this.controlWindow = null;
     }
 
     win(mainWindow) {
         this.mainWindow = mainWindow;
     }
+
+    control(controlWindow) {
+        this.controlWindow = controlWindow;
+    }
+
+    // expected payload
+
+    // type: type of payload
+    // timestamp: timestamp
+    // target: whether to send to main or control window
+    // result: dictionary
 
     startServer() {
         const server = net.createServer(socket => {
@@ -48,12 +60,21 @@ class _Server {
                     try {
                         const payload = JSON.parse(payloadJSON);
 
-                        if (!this.mainWindow || this.mainWindow.isDestroyed()) {
-                            return;
+                        let w = null;
+
+                        switch (payload.target) {
+                            case "main":
+                                w = this.mainWindow;
+                                break;
+                            case "control":
+                                w = this.controlWindow;
+                                break;
                         }
 
-                        this.mainWindow.webContents.send("type-change", payload.type);
-                        this.mainWindow.webContents.send("payload-send", payload.results);
+                        if (!w || w.isDestroyed()) return;
+
+                        w.webContents.send("type-change", payload.type);
+                        w.webContents.send("payload-send", payload.results);
                     } catch (error) {
                         console.log("Error parsing payload:", error);
                     }

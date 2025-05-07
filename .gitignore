@@ -1,3 +1,7 @@
 /screenhud-electron
 electron/.env
 electron/env.env
+/_screenhud-electron
+/electron/dist-electron
+/electron/dist-electron
+/electron/release

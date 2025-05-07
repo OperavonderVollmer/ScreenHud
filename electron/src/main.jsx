@@ -10,18 +10,13 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     </React.StrictMode>
 );
 
-// Use contextBridge
-window.ipcRenderer.on("main-process-message", (_event, message) => {
-    console.log(message);
-});
-
 let type = "card";
 
-window.ipcRenderer.on("type-change", (_event, newType) => {
+window.mainAPI.on("type-change", (_event, newType) => {
     type = newType;
 });
 
-window.ipcRenderer.on("payload-send", (_event, results) => {
+window.mainAPI.on("payload-send", (_event, results) => {
     console.log("Received payload:", results);
 
     switch (type) {

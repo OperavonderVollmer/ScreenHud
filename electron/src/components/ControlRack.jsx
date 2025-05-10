@@ -5,6 +5,7 @@ import WeatherIcons from "../utilities/WeatherIcons.jsx";
 import ControlBG from "./ControlBG.jsx";
 import ControlWatch from "./ControlWatch.jsx";
 import ControlAlarm from "./ControlAlarm.jsx";
+import ControlInfo from "./ControlInfo.jsx";
 
 const CONTROLHOVEROPENTIME = 250;
 // const TIMESTYLE = "en-GB";
@@ -75,13 +76,16 @@ export const ControlRack = () => {
     >
       <div className="OPRControlRackBG absolute w-screen h-screen" />
       <div className="flex flex-row w-screen overflow-hidden">
-        <div className="flex flex-col h-screen m-5 p2">
+        <div className="flex flex-col h-screen mx-[2.5vw] py-[6vh]">
           <ControlWatch
-            class={"w-[45vw]"}
+            class={"w-[45vw] pb-[5vh]"}
             currentTime={`${currentTime}`}
             weather={weather}
           />
           <ControlAlarm class={"w-[45vw]"} />
+        </div>
+        <div className="flex flex-col h-screen w-full my-[2.5vh] mx-[2.5vw] py-[2vh] overflow-auto scrollbar-hide">
+          <ControlInfo />
         </div>
       </div>
     </div>

@@ -11,6 +11,8 @@ const ControlWatch = (props) => {
     props.currentTime instanceof Date
       ? props.currentTime
       : new Date(props.currentTime);
+  const nextForecast = "Rainy in 3 hr ";
+  const forecastProvider = "Weather report powered by XXX";
 
   return (
     <div className={`${props.class}`}>
@@ -64,8 +66,8 @@ const ControlWatch = (props) => {
           <h1>{`48 c / 50 f`}</h1>
         </div>
         <div className="flex flex-col justify-end items-end">
-          <h1 className="text-[2vw]">Rainy in 3 hr</h1>
-          <h1 className="text-[1.3vw]">Weather report powered by XXX</h1>
+          <h1 className="text-[2vw]">{nextForecast}</h1>
+          <h1 className="text-[1.3vw]">{forecastProvider}</h1>
         </div>
       </div>
     </div>

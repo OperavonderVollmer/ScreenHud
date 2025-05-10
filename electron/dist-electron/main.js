@@ -95,78 +95,6 @@ class _Server {
   }
 }
 const OPRServer = new _Server();
-function GetRandomID() {
-  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-}
-class _ControlSettings {
-  constructor() {
-    this.id = GetRandomID();
-    this.window = null;
-    this.control = null;
-    this.width = 0;
-    this.height = 0;
-    this.offset = 0;
-    console.log("ControlSettings created. ID: ", this.id);
-  }
-  main(window) {
-    if (window) {
-      console.log("Window is null");
-      return false;
-    }
-    console.log(`Window created for ${this.id}`);
-    this.window = window;
-  }
-  control(window) {
-    if (window) {
-      console.log("Window is null");
-      return false;
-    }
-    console.log(`Control window referenced for ${this.id}`);
-    this.control = window;
-  }
-  checkID() {
-    return this.id;
-  }
-  size(width, height) {
-    this.width = width;
-    this.height = height;
-  }
-  setOffset(offset) {
-    this.offset = offset;
-  }
-  confirmWindow() {
-    if (!this.window) {
-      console.log("Window is null");
-      return false;
-    }
-    if (this.window.isDestroyed()) {
-      console.log("Main window is destroyed");
-      return false;
-    }
-    return true;
-  }
-  confirmControl() {
-    if (!this.control) {
-      console.log("Window is null");
-      return false;
-    }
-    if (this.control.isDestroyed()) {
-      console.log("Main window is destroyed");
-      return false;
-    }
-    return true;
-  }
-  communicate(type, event, payload) {
-    if (!this.confirmWindow()) return;
-    this.window.webContents.send("type-change", type);
-    this.window.webContents.send(event, payload);
-  }
-  move(x, y) {
-    if (!this.confirmControl()) return;
-    this.control.setPosition(x, y);
-  }
-}
-const ControlSettings = new _ControlSettings();
 function getDefaultExportFromCjs(x) {
   return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, "default") ? x["default"] : x;
 }
@@ -490,7 +418,7 @@ function createWindow() {
 function createControl() {
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width: w, height: h } = primaryDisplay.workAreaSize;
-  const width = w * 0.2;
+  const width = w * 0.5;
   const height = h * 0.5;
   let browserWindowProperties = {
     width,
@@ -505,14 +433,27 @@ function createControl() {
       nodeIntegration: false
     }
   };
+  {
+    browserWindowProperties = {
+      ...browserWindowProperties,
+      resizable: false,
+      transparent: true,
+      frame: false,
+      skipTaskbar: true,
+      alwaysOnTop: true
+    };
+  }
   control = new BrowserWindow(browserWindowProperties);
   control.webContents.on("did-finish-load", () => {
     control == null ? void 0 : control.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
     control == null ? void 0 : control.setHasShadow(false);
     {
-      control == null ? void 0 : control.webContents.openDevTools();
+      control == null ? void 0 : control.setIgnoreMouseEvents(true, { forward: true });
     }
-    control == null ? void 0 : control.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
+    control == null ? void 0 : control.webContents.send(
+      "main-process-message",
+      (/* @__PURE__ */ new Date()).toLocaleString()
+    );
   });
   if (VITE_DEV_SERVER_URL) {
     control.loadURL(`${VITE_DEV_SERVER_URL}control.html`);
@@ -550,7 +491,6 @@ app.whenReady().then(() => {
   createControl();
   OPRServer.win(win);
   OPRServer.startServer();
-  ControlSettings.main(win);
   {
     createTray();
   }

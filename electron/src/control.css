@@ -1,3 +1,50 @@
 @import "tailwindcss";
 
+.OPRControlRackBG {
+  background-color: rgb(247, 104, 2);
+  z-index: -1;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.6) 25%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.6) 25%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
 
+.OPRControlRackBG::-webkit-scrollbar {
+  display: none;
+}
+
+.OPRControlRack::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes scrollText {
+  25% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.scroll-marquee:hover {
+  animation-play-state: paused;
+}
+
+.scroll-marquee {
+  overflow-x: hidden;
+  display: inline-block;
+  white-space: nowrap;
+  animation: scrollText 20s linear infinite;
+}

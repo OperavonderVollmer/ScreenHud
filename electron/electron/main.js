@@ -1,10 +1,10 @@
-import {app, BrowserWindow, Tray, Menu, screen, ipcMain} from "electron";
-import {fileURLToPath} from "node:url";
+import { app, BrowserWindow, Tray, Menu, screen, ipcMain } from "electron";
+import { fileURLToPath } from "node:url";
 import path from "node:path";
 import OPRServer from "../src/data/Server.js";
-import ControlSettings from "../src/data/ControlSettings.js";
 import process from "node:process";
 import dotenv from "dotenv";
+import { Facebook } from "lucide-react";
 
 /*
 Unused imports cause typescript is a bitch and complains about unused imports
@@ -18,7 +18,7 @@ const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const envPath = path.resolve(__dirname, "../../env.env");
-dotenv.config({path: envPath});
+dotenv.config({ path: envPath });
 
 // The built directory structure
 //
@@ -36,187 +36,192 @@ export const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
 export const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
 export const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
 
-process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, "public") : RENDERER_DIST;
+process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
+  ? path.join(process.env.APP_ROOT, "public")
+  : RENDERER_DIST;
 
 let win = null;
 let control = null;
 let tray = null;
 
 const MAINWINDOW_DEBUG_MODE = false;
-const CONTROL_DEBUG_MODE = true;
+const CONTROL_DEBUG_MODE = false;
 
 function createWindow() {
-    const primaryDisplay = screen.getPrimaryDisplay();
-    const {width, height} = primaryDisplay.workAreaSize;
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { width, height } = primaryDisplay.workAreaSize;
 
-    let browserWindowProperties = {
-        width: width,
-        height: height,
-        resizable: false,
-        autoHideMenuBar: true,
-        webPreferences: {
-            preload: path.join(__dirname, "preload_main.mjs"),
-            contextIsolation: true,
-            nodeIntegration: false,
-        },
+  let browserWindowProperties = {
+    width: width,
+    height: height,
+    resizable: false,
+    autoHideMenuBar: true,
+    webPreferences: {
+      preload: path.join(__dirname, "preload_main.mjs"),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  };
+
+  if (!MAINWINDOW_DEBUG_MODE) {
+    browserWindowProperties = {
+      ...browserWindowProperties,
+      transparent: true,
+      frame: false,
+      skipTaskbar: true,
+      alwaysOnTop: true,
+      focusable: false,
     };
+  }
+  win = new BrowserWindow(browserWindowProperties);
 
-    if (!MAINWINDOW_DEBUG_MODE) {
-        browserWindowProperties = {
-            ...browserWindowProperties,
-            transparent: true,
-            frame: false,
-            skipTaskbar: true,
-            alwaysOnTop: true,
-            focusable: false,
-        };
-    }
-    win = new BrowserWindow(browserWindowProperties);
+  // Test active push message to Renderer-process.
+  win.webContents.on("did-finish-load", () => {
+    win?.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+    win?.setHasShadow(false);
 
-    // Test active push message to Renderer-process.
-    win.webContents.on("did-finish-load", () => {
-        win?.setVisibleOnAllWorkspaces(true, {visibleOnFullScreen: true});
-        win?.setHasShadow(false);
-
-        if (MAINWINDOW_DEBUG_MODE) {
-            win?.webContents.openDevTools();
-        } else {
-            win?.setIgnoreMouseEvents(true, {forward: true});
-        }
-
-        // win?.webContents.send("main-process-message", new Date().toLocaleString());
-    });
-
-    if (VITE_DEV_SERVER_URL) {
-        win.loadURL(VITE_DEV_SERVER_URL);
+    if (MAINWINDOW_DEBUG_MODE) {
+      win?.webContents.openDevTools();
     } else {
-        // win.loadFile('dist/index.html')
-        win.loadFile(path.join(RENDERER_DIST, "index.html"));
+      win?.setIgnoreMouseEvents(true, { forward: true });
     }
+
+    // win?.webContents.send("main-process-message", new Date().toLocaleString());
+  });
+
+  if (VITE_DEV_SERVER_URL) {
+    win.loadURL(VITE_DEV_SERVER_URL);
+  } else {
+    // win.loadFile('dist/index.html')
+    win.loadFile(path.join(RENDERER_DIST, "index.html"));
+  }
 }
 
 function createControl() {
-    const primaryDisplay = screen.getPrimaryDisplay();
-    const {width: w, height: h} = primaryDisplay.workAreaSize;
-    const width = w * 0.2;
-    const height = h * 0.5;
-    // const xoffset = CONTROL_DEBUG_MODE ? width : width * -1 + 10;
-    // const xoffset = width * -1 + 20;
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { width: w, height: h } = primaryDisplay.workAreaSize;
+  const width = w * 0.5;
+  const height = h * 0.5;
+  // const xoffset = CONTROL_DEBUG_MODE ? width : width * -1 + 10;
+  // const xoffset = width * -1 + 20;
 
-    let browserWindowProperties = {
-        width: width,
-        height: height,
-        autoHideMenuBar: true,
-        frame: false,
-        x: -10,
-        y: -10,
+  let browserWindowProperties = {
+    width: width,
+    height: height,
+    autoHideMenuBar: true,
+    frame: false,
+    x: -10,
+    y: -10,
 
-        webPreferences: {
-            preload: path.join(__dirname, "preload_control.mjs"),
-            contextIsolation: true,
-            nodeIntegration: false,
-        },
+    webPreferences: {
+      preload: path.join(__dirname, "preload_control.mjs"),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  };
+
+  if (!CONTROL_DEBUG_MODE) {
+    browserWindowProperties = {
+      ...browserWindowProperties,
+      resizable: false,
+      transparent: true,
+      frame: false,
+      skipTaskbar: true,
+      alwaysOnTop: true,
     };
+  }
 
-    if (!CONTROL_DEBUG_MODE) {
-        browserWindowProperties = {
-            ...browserWindowProperties,
-            resizable: false,
-            transparent: true,
-            frame: false,
-            skipTaskbar: true,
-            alwaysOnTop: true,
-        };
-    }
+  control = new BrowserWindow(browserWindowProperties);
 
-    control = new BrowserWindow(browserWindowProperties);
+  // control?.setIgnoreMouseEvents(true, {forward: true});
 
-    // control?.setIgnoreMouseEvents(true, {forward: true});
+  control.webContents.on("did-finish-load", () => {
+    control?.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+    control?.setHasShadow(false);
 
-    control.webContents.on("did-finish-load", () => {
-        control?.setVisibleOnAllWorkspaces(true, {visibleOnFullScreen: true});
-        control?.setHasShadow(false);
-
-        if (CONTROL_DEBUG_MODE) {
-            control?.webContents.openDevTools();
-        }
-
-        control?.webContents.send("main-process-message", new Date().toLocaleString());
-    });
-
-    if (VITE_DEV_SERVER_URL) {
-        control.loadURL(`${VITE_DEV_SERVER_URL}control.html`);
+    if (CONTROL_DEBUG_MODE) {
+      control?.webContents.openDevTools();
     } else {
-        control.loadFile(path.join(RENDERER_DIST, "control.html"));
+      control?.setIgnoreMouseEvents(true, { forward: true });
     }
+
+    control?.webContents.send(
+      "main-process-message",
+      new Date().toLocaleString()
+    );
+  });
+
+  if (VITE_DEV_SERVER_URL) {
+    control.loadURL(`${VITE_DEV_SERVER_URL}control.html`);
+  } else {
+    control.loadFile(path.join(RENDERER_DIST, "control.html"));
+  }
 }
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") {
-        app.quit();
-        win = null;
-    }
+  if (process.platform !== "darwin") {
+    app.quit();
+    win = null;
+  }
 });
 
 app.on("activate", () => {
-    // On OS X it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) {
-        createWindow();
-    }
+  // On OS X it's common to re-create a window in the app when the
+  // dock icon is clicked and there are no other windows open.
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow();
+  }
 });
 
 function createTray() {
-    const trayIcon = path.join(process.env.VITE_PUBLIC, "HUD2.png");
-    tray = new Tray(trayIcon);
+  const trayIcon = path.join(process.env.VITE_PUBLIC, "HUD2.png");
+  tray = new Tray(trayIcon);
 
-    const contextMenu = Menu.buildFromTemplate([
-        {
-            label: "Exit",
-            click: () => {
-                app.quit(); // ,
-                //app.isQuitting = True
-            },
-        },
-    ]);
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: "Exit",
+      click: () => {
+        app.quit(); // ,
+        //app.isQuitting = True
+      },
+    },
+  ]);
 
-    tray.setToolTip("ScreenHud");
-    tray.setContextMenu(contextMenu);
+  tray.setToolTip("ScreenHud");
+  tray.setContextMenu(contextMenu);
 }
 
 app.whenReady().then(() => {
-    createWindow();
-    createControl();
+  createWindow();
+  createControl();
 
-    OPRServer.win(win);
-    OPRServer.startServer();
+  OPRServer.win(win);
+  OPRServer.startServer();
 
-    ControlSettings.main(win);
-
-    if (!MAINWINDOW_DEBUG_MODE) {
-        createTray();
-    }
+  if (!MAINWINDOW_DEBUG_MODE) {
+    createTray();
+  }
 });
 
 ipcMain.on("move-window", (event, x, y) => {
-    const w = BrowserWindow.fromWebContents(event.sender);
-    if (w) {
-        w.setPosition(x, y, true);
-    } else {
-        console.error("Failed to find window to move.");
-    }
+  const w = BrowserWindow.fromWebContents(event.sender);
+  if (w) {
+    w.setPosition(x, y, true);
+  } else {
+    console.error("Failed to find window to move.");
+  }
 });
 
-ipcMain.handle("get-window-size", event => {
-    const win = BrowserWindow.fromWebContents(event.sender);
-    if (win) {
-        const size = win.getSize();
-        return {width: size[0], height: size[1]};
-    } else {
-        console.error("Failed to find window to get size.");
-        return {width: 0, height: 0};
-    }
+ipcMain.handle("get-window-size", (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (win) {
+    const size = win.getSize();
+    return { width: size[0], height: size[1] };
+  } else {
+    console.error("Failed to find window to get size.");
+    return { width: 0, height: 0 };
+  }
 });

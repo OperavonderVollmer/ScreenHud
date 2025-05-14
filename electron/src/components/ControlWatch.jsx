@@ -15,11 +15,8 @@ const ControlWatch = (props) => {
   const forecastProvider = "Weather report powered by XXX";
 
   return (
-    <div className={`${props.class}`}>
-      <div
-        className="p-5 rounded-2xl"
-        style={{ backgroundColor: "rgb(200, 0, 0)" }}
-      >
+    <div className={`${props.class} `}>
+      <div className="p-5 OPRControl baseColor">
         <div
           className={`flex flex-row w-full m-0 p-0 items-end ${
             TIMESTYLE === "en-US" ? "justify-between" : "justify-end"

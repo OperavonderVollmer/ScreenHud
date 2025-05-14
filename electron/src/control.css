@@ -1,20 +1,113 @@
 @import "tailwindcss";
 
+.colorVariables {
+  --baseColor: #ffffff;
+  --lighterBaseColor: #ffffff;
+  --darkerBaseColor: #ffffff;
+  --baseButtonColor: #ffffff;
+  --hoverBaseButtonColor: #ffffff;
+  --clickBaseButtonColor: #ffffff;
+  --baseThemedButtonColor: #ffffff;
+  --hoverBaseThemedButtonColor: #ffffff;
+  --clickBaseThemedButtonColor: #ffffff;
+
+  --accentColor: #ffffff;
+  --lighterAccentColor: #ffffff;
+  --darkerAccentColor: #ffffff;
+  --accentButtonColor: #ffffff;
+  --hoverAccentButtonColor: #ffffff;
+  --clickAccentButtonColor: #ffffff;
+  --accentThemedButtonColor: #ffffff;
+  --hoverAccentThemedButtonColor: #ffffff;
+  --clickAccentThemedButtonColor: #ffffff;
+}
+
+.baseColor {
+  background-color: var(--baseColor);
+}
+
+.lighterBaseColor {
+  background-color: var(--lighterBaseColor);
+}
+
+.darkerBaseColor {
+  background-color: var(--darkerBaseColor);
+}
+
+.baseButtonColor {
+  background-color: var(--baseButtonColor);
+}
+
+.hoverBaseButtonColor {
+  background-color: var(--hoverBaseButtonColor);
+}
+
+.clickBaseButtonColor {
+  background-color: var(--clickBaseButtonColor);
+}
+
+.baseThemedButtonColor {
+  background-color: var(--baseThemedButtonColor);
+}
+
+.hoverBaseThemedButtonColor {
+  background-color: var(--hoverBaseThemedButtonColor);
+}
+
+.clickBaseThemedButtonColor {
+  background-color: var(--clickBaseThemedButtonColor);
+}
+
+.accentColor {
+  background-color: var(--accentColor);
+}
+
+.lighterAccentColor {
+  background-color: var(--lighterAccentColor);
+}
+
+.darkerAccentColor {
+  background-color: var(--darkerAccentColor);
+}
+
+.accentButtonColor {
+  background-color: var(--accentButtonColor);
+}
+
+.hoverAccentButtonColor {
+  background-color: var(--hoverAccentButtonColor);
+}
+
+.clickAccentButtonColor {
+  background-color: var(--clickAccentButtonColor);
+}
+
+.accentThemedButtonColor {
+  background-color: var(--accentThemedButtonColor);
+}
+
+.hoverAccentThemedButtonColor {
+  background-color: var(--hoverAccentThemedButtonColor);
+}
+
+.clickAccentThemedButtonColor {
+  background-color: var(--clickAccentThemedButtonColor);
+}
+
 .OPRControlRackBG {
-  background-color: rgb(247, 104, 2);
   z-index: -1;
-  -webkit-mask-image: linear-gradient(
-    to right,
-    rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 0.6) 25%,
-    rgba(0, 0, 0, 0) 100%
-  );
   mask-image: linear-gradient(
     to right,
     rgba(0, 0, 0, 1) 0%,
     rgba(0, 0, 0, 0.6) 25%,
-    rgba(0, 0, 0, 0) 100%
+    rgba(0, 0, 0, 0.01) 100%
   );
+  /* mask-image: linear-gradient(
+    to bottom right,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.6) 25%,
+    rgba(0, 0, 0, 0) 100%
+  ); */
 }
 
 .OPRControlRackBG::-webkit-scrollbar {
@@ -49,29 +142,46 @@
   animation: scrollText 20s linear infinite;
 }
 
-.OPRButton {
-  background-color: #a60000;
+.OPRAlarmButton {
   transition: transform 0.1s ease-out, background-color 0.1s ease-out;
   padding: 0.5vw;
   border-radius: 20%;
   cursor: pointer;
+  background-color: var(--accentThemedButtonColor);
 }
 
-.OPRButton:hover {
-  background-color: #e64545;
+.OPRAlarmButton:hover {
   transform: scale(1.2);
+  background-color: var(--hoverAccentThemedButtonColor);
 }
 
-.OPRButton:active {
-  background-color: #5a0000;
+.OPRAlarmButton:active {
   transform: scale(0.9);
+  background-color: var(--clickAccentThemedButtonColor);
 }
 
 .OPRControlInfo {
-  background-color: #a60000;
   transition: transform 0.1s ease-out, background-color 0.1s ease-out;
   cursor: pointer;
-  margin: 1vw;
-  padding: 1vw;
+  margin: 1rem;
   border-radius: 1.3rem;
+  box-shadow: 0 0 1rem 0 rgba(0, 0, 0, 0.2);
+  user-select: none;
+}
+
+.OPRControlInfo:hover {
+  transform: scale(1.02);
+}
+
+.OPRControlInfo:active {
+  transform: scale(0.98);
+}
+
+.OPRControl {
+  box-shadow: 0 0 1rem 0 rgba(0, 0, 0, 0.2);
+  border-radius: 1rem;
+}
+
+.OPRButton * {
+  filter: blur(0px);
 }

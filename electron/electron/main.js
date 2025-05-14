@@ -4,6 +4,7 @@ import path from "node:path";
 import OPRServer from "../src/data/Server.js";
 import process from "node:process";
 import dotenv from "dotenv";
+import { writeFileSync, readFileSync } from "node:fs";
 import { Facebook } from "lucide-react";
 
 /*
@@ -101,7 +102,9 @@ function createControl() {
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width: w, height: h } = primaryDisplay.workAreaSize;
   const width = w * 0.5;
-  const height = h * 0.5;
+  // const height = h * 0.5;
+  const height = w / 3.56; // This is to preserve the aspect ratio
+
   // const xoffset = CONTROL_DEBUG_MODE ? width : width * -1 + 10;
   // const xoffset = width * -1 + 20;
 
@@ -110,8 +113,8 @@ function createControl() {
     height: height,
     autoHideMenuBar: true,
     frame: false,
-    x: -10,
-    y: -10,
+    x: CONTROL_DEBUG_MODE ? 10 : width * -1 + 5,
+    y: CONTROL_DEBUG_MODE ? 10 : h * -1,
 
     webPreferences: {
       preload: path.join(__dirname, "preload_control.mjs"),
@@ -133,7 +136,7 @@ function createControl() {
 
   control = new BrowserWindow(browserWindowProperties);
 
-  // control?.setIgnoreMouseEvents(true, {forward: true});
+  // control?.webContents.openDevTools();
 
   control.webContents.on("did-finish-load", () => {
     control?.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
@@ -142,7 +145,7 @@ function createControl() {
     if (CONTROL_DEBUG_MODE) {
       control?.webContents.openDevTools();
     } else {
-      control?.setIgnoreMouseEvents(true, { forward: true });
+      // control?.setIgnoreMouseEvents(true, { forward: true });
     }
 
     control?.webContents.send(
@@ -223,5 +226,26 @@ ipcMain.handle("get-window-size", (event) => {
   } else {
     console.error("Failed to find window to get size.");
     return { width: 0, height: 0 };
+  }
+});
+
+ipcMain.handle("json-write", (event, _path, _data) => {
+  try {
+    writeFileSync(_path, JSON.stringify(_data, null, 2), "utf8");
+    return { status: true };
+  } catch (err) {
+    return { status: false, error: err.message };
+  }
+});
+
+ipcMain.handle("json-read", (event, _path) => {
+  try {
+    const filepath = path.join(app.getAppPath(), _path);
+    const data = JSON.parse(readFileSync(filepath, "utf8"));
+    console.log(`Read file: ${filepath}. Result: ${JSON.stringify(data)}`);
+    return { status: true, data };
+  } catch (err) {
+    console.error(`Error reading file: ${err.message}`);
+    return { status: false, error: err.message };
   }
 });

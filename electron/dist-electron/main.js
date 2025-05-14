@@ -12,6 +12,7 @@ import require$$0 from "fs";
 import require$$1 from "path";
 import require$$2 from "os";
 import require$$3 from "crypto";
+import { writeFileSync, readFileSync } from "node:fs";
 class ServerConfigs {
 }
 __publicField(ServerConfigs, "HUD_HOST", String(process$1.env.HUD_HOST ?? "127.0.0.1"));
@@ -419,14 +420,14 @@ function createControl() {
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width: w, height: h } = primaryDisplay.workAreaSize;
   const width = w * 0.5;
-  const height = h * 0.5;
+  const height = w / 3.56;
   let browserWindowProperties = {
     width,
     height,
     autoHideMenuBar: true,
     frame: false,
-    x: -10,
-    y: -10,
+    x: width * -1 + 5,
+    y: h * -1,
     webPreferences: {
       preload: path$1.join(__dirname, "preload_control.mjs"),
       contextIsolation: true,
@@ -447,9 +448,6 @@ function createControl() {
   control.webContents.on("did-finish-load", () => {
     control == null ? void 0 : control.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
     control == null ? void 0 : control.setHasShadow(false);
-    {
-      control == null ? void 0 : control.setIgnoreMouseEvents(true, { forward: true });
-    }
     control == null ? void 0 : control.webContents.send(
       "main-process-message",
       (/* @__PURE__ */ new Date()).toLocaleString()
@@ -511,6 +509,25 @@ ipcMain.handle("get-window-size", (event) => {
   } else {
     console.error("Failed to find window to get size.");
     return { width: 0, height: 0 };
+  }
+});
+ipcMain.handle("json-write", (event, _path, _data) => {
+  try {
+    writeFileSync(_path, JSON.stringify(_data, null, 2), "utf8");
+    return { status: true };
+  } catch (err) {
+    return { status: false, error: err.message };
+  }
+});
+ipcMain.handle("json-read", (event, _path) => {
+  try {
+    const filepath = path$1.join(app.getAppPath(), _path);
+    const data = JSON.parse(readFileSync(filepath, "utf8"));
+    console.log(`Read file: ${filepath}. Result: ${JSON.stringify(data)}`);
+    return { status: true, data };
+  } catch (err) {
+    console.error(`Error reading file: ${err.message}`);
+    return { status: false, error: err.message };
   }
 });
 export {

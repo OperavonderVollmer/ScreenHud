@@ -1,18 +1,66 @@
-import React from "react";
 import WeatherIcons from "../utilities/WeatherIcons.jsx";
 import toPascalCase from "../utilities/ToPascalCase.js";
-import { rgba } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 
 const TIMESTYLE = "en-US";
 // const TIMESTYLE = "en-GB";
 
 const ControlWatch = (props) => {
+  if (props.forecasts.length === 0) return <div></div>;
+  const [next, setNext] = useState(props.forecasts[0]);
+  const [weather, setWeather] = useState("cloudy");
+  const [nextForecast, setNextForecast] = useState("");
+  const [warningMessage, setWarningMessage] = useState("");
+  const forecastProvider = useRef("Weather report powered by wttr.in");
+
   const currentTime =
     props.currentTime instanceof Date
       ? props.currentTime
       : new Date(props.currentTime);
-  const nextForecast = "Rainy in 3 hr ";
-  const forecastProvider = "Weather report powered by XXX";
+
+  const forecasts = props.forecasts;
+  const nextForecastTimeHours = Math.floor(
+    props.nextForecastTime / 1000 / 60 / 60
+  );
+
+  useEffect(() => {
+    if (forecasts.length === 0) return;
+
+    const hour0 = parseInt(forecasts[0]?.timeGB?.split(":")[0], 10);
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    setNext(hour0 > currentMinutes ? forecasts[0] : forecasts[1]);
+
+    if (next) console.log(next.chances);
+  }, [forecasts]);
+
+  useEffect(() => {
+    setNextForecast(
+      `${next?.forecast} within ${
+        typeof nextForecastTimeHours === "number"
+          ? nextForecastTimeHours <= 1
+            ? "the hour"
+            : `${nextForecastTimeHours} hrs`
+          : "?"
+      }`
+    );
+
+    setWeather(next?.forecast);
+
+    let warning = { w: ["none", 0] };
+    console.log(next.chances);
+    for (const [key, value] of Object.entries(next.chances)) {
+      if (value >= warning.w[1]) {
+        warning.w[0] = key;
+        warning.w[1] = value;
+      }
+    }
+
+    console.log(warning);
+    setWarningMessage(
+      warning.w[1] > 60 ? `${toPascalCase(warning.w[0])}: ${warning.w[1]}%` : ""
+    );
+  }, [next]);
 
   return (
     <div className={`${props.class} `}>
@@ -49,7 +97,7 @@ const ControlWatch = (props) => {
           </h1>
         </div>
         <div className="text-[3vw] flex flex-row justify-between items-end gap-x-5">
-          <h1>{toPascalCase(props.weather)}</h1>
+          <h1>{toPascalCase(weather)}</h1>
           <h1>
             {currentTime.toLocaleDateString(TIMESTYLE, {
               month: "short",
@@ -59,12 +107,15 @@ const ControlWatch = (props) => {
           </h1>
         </div>
         <div className="text-[3vw] flex flex-row justify-between items-center gap-x-5">
-          <WeatherIcons weather={props.weather} strokeColor="white" />
-          <h1>{`48 c / 50 f`}</h1>
+          <WeatherIcons weather={weather} strokeColor="white" />
+          <h1>{`${next?.tempC}°c / ${next?.tempF}°f`}</h1>
         </div>
         <div className="flex flex-col justify-end items-end">
-          <h1 className="text-[2vw]">{nextForecast}</h1>
-          <h1 className="text-[1.3vw]">{forecastProvider}</h1>
+          <h1 className="text-[2vw]">
+            <span className="text-[1.3vw]">{warningMessage}</span>{" "}
+            {nextForecast}
+          </h1>
+          <h1 className="text-[1vw] text-[#aaa]">{forecastProvider.current}</h1>
         </div>
       </div>
     </div>

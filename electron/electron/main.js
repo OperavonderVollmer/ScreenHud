@@ -2,6 +2,7 @@ import { app, BrowserWindow, Tray, Menu, screen, ipcMain } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import OPRServer from "../src/data/Server.js";
+import * as OPRApi from "../src/data/Api.js";
 import process from "node:process";
 import dotenv from "dotenv";
 import { writeFileSync, readFileSync } from "node:fs";
@@ -46,7 +47,8 @@ let control = null;
 let tray = null;
 
 const MAINWINDOW_DEBUG_MODE = false;
-const CONTROL_DEBUG_MODE = false;
+const CONTROL_DEBUG_MODE = true;
+export let REST_STATUS = "NO";
 
 function createWindow() {
   const primaryDisplay = screen.getPrimaryDisplay();
@@ -198,6 +200,10 @@ function createTray() {
 }
 
 app.whenReady().then(() => {
+  restCheck().then((res) => {
+    console.log(`REST status: ${res}`);
+  });
+
   createWindow();
   createControl();
 
@@ -208,6 +214,17 @@ app.whenReady().then(() => {
     createTray();
   }
 });
+
+async function restCheck() {
+  const res = await OPRApi.restCheck();
+  if (res.status === "OK" && res.status_code === 200) {
+    REST_STATUS = "OK";
+  } else {
+    REST_STATUS = "NO";
+  }
+
+  return res.status;
+}
 
 ipcMain.on("move-window", (event, x, y) => {
   const w = BrowserWindow.fromWebContents(event.sender);
@@ -248,4 +265,75 @@ ipcMain.handle("json-read", (event, _path) => {
     console.error(`Error reading file: ${err.message}`);
     return { status: false, error: err.message };
   }
+});
+
+ipcMain.handle("get-forecast", async () => {
+  const res = await OPRApi.getForecast();
+  return res;
+});
+
+ipcMain.handle(
+  "new-alarm",
+  async (
+    title,
+    subtitle = "No subtitle",
+    description = "No description",
+    subdescription = "No subdescription",
+    creation, // Must be in "YYYY-MM-DD" format
+    trigger, // Must be in "HH:MM:SS" format
+    reoccurence_type,
+    weekdays = [],
+    months = [],
+    day = null,
+    year = null // Only used for NONE alarms
+  ) => {
+    let res = await OPRApi.newAlarm(
+      title,
+      subtitle,
+      description,
+      subdescription,
+      creation,
+      trigger,
+      reoccurence_type,
+      weekdays,
+      months,
+      day,
+      year
+    );
+    return res;
+  }
+);
+
+ipcMain.handle("list-alarm", async () => {
+  const res = await OPRApi.listAlarms();
+  return res;
+});
+
+ipcMain.handle("start-all-alarms", async () => {
+  const res = await OPRApi.startAllAlarms();
+});
+
+ipcMain.handle("start-alarm", async (event, title) => {
+  const res = await OPRApi.startAlarm(title);
+  return res;
+});
+
+ipcMain.handle("clear-alarm", async (event, title) => {
+  const res = await OPRApi.clearAlarm(title);
+  return res;
+});
+
+ipcMain.handle("clear-all-alarms", async () => {
+  const res = await OPRApi.clearAllAlarms();
+  return res;
+});
+
+ipcMain.handle("set-auto-save", async (event, t) => {
+  const res = await OPRApi.setAutoSave(t);
+  return res;
+});
+
+ipcMain.handle("set-auto-start", async (event, t) => {
+  const res = await OPRApi.setAutoStart(t);
+  return res;
 });

@@ -7,6 +7,7 @@ import ControlWatch from "./ControlWatch.jsx";
 import ControlAlarm from "./ControlAlarm.jsx";
 import ControlInfo from "./ControlInfo.jsx";
 import { hover } from "framer-motion";
+import { forecast_scheduler } from "../data/ForecastHandler.js";
 
 import { getColors } from "../utilities/Colors.js";
 
@@ -19,8 +20,10 @@ export const ControlRack = () => {
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   const [currentTime, setCurrentTime] = useState(new Date());
   const [configData, setConfigData] = useState({});
-  const [weather, setWeather] = useState("rainy");
   const firstRun = useRef(true);
+  const [forecasts, setForecasts] = useState([]);
+  const [nextForecastTime, setNextForecastTime] = useState(0);
+  const timeoutRef = useRef(null);
 
   //loads the config and sets the colors
   useEffect(() => {
@@ -131,6 +134,26 @@ export const ControlRack = () => {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    console.log("Starting forecast scheduler");
+    const schedule = async () => {
+      const res = await forecast_scheduler();
+      console.log(`Next forecast scheduled in ${res.msDelta}ms`);
+      setNextForecastTime(res.msDelta);
+      setForecasts(res.forecasts);
+
+      timeoutRef.current = setTimeout(() => {
+        schedule(); // Recursive rescheduling
+      }, res.msDelta);
+    };
+
+    schedule(); // Initial call
+
+    return () => {
+      clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
   //sets the window size and the font
   useEffect(() => {
     async function fetchWindowSize() {
@@ -166,16 +189,16 @@ export const ControlRack = () => {
 
     if (hovered) {
       console.log("Hovered");
-      window.controlAPI.move(-15, -10);
+      // window.controlAPI.move(-15, -10);
     } else {
       console.log("Not hovered");
       setTimeout(() => {
-        if (!hovered) {
-          window.controlAPI.move(
-            windowSize.width * -1 + 5,
-            windowSize.height * -1 + 5
-          );
-        }
+        // if (!hovered) {
+        //   window.controlAPI.move(
+        //     windowSize.width * -1 + 5,
+        //     windowSize.height * -1 + 5
+        //   );
+        // }
       }, CONTROLHOVEROPENTIME);
     }
   }, [hovered, windowSize]);
@@ -194,7 +217,8 @@ export const ControlRack = () => {
           <ControlWatch
             class={"w-[45vw] pb-[5vh]"}
             currentTime={`${currentTime}`}
-            weather={weather}
+            forecasts={forecasts}
+            nextForecastTime={nextForecastTime}
           />
           <ControlAlarm class={"w-[45vw]"} />
         </div>

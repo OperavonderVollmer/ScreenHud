@@ -96,6 +96,45 @@ class _Server {
   }
 }
 const OPRServer = new _Server();
+const address = "http://127.0.0.1:8000/";
+async function restCheck$1() {
+  const res = await fetch(address);
+  const data = await res.json();
+  return data;
+}
+async function getForecast() {
+  const res = await fetch(`${address}forecast`);
+  const data = await res.json();
+  return data;
+}
+async function newAlarm(title, subtitle = "No subtitle", description = "No description", subdescription = "No subdescription", creation = "", trigger = "", reoccurence_type = "NONE", weekdays = [], months = [], day = null, year = null) {
+  const payload = {
+    title,
+    subtitle,
+    description,
+    subdescription,
+    creation,
+    trigger,
+    reoccurence_type,
+    weekdays,
+    months,
+    day,
+    year
+  };
+  const res = await fetch(`${address}alarms/new`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+    // <-- Do NOT nest under "alarm"
+  });
+  const data = await res.json();
+  return data;
+}
+async function listAlarms() {
+  const res = await fetch(`${address}alarms/list`);
+  const data = await res.json();
+  return data;
+}
 function getDefaultExportFromCjs(x) {
   return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, "default") ? x["default"] : x;
 }
@@ -141,14 +180,14 @@ function _parseVault(options) {
   const keys = _dotenvKey(options).split(",");
   const length = keys.length;
   let decrypted;
-  for (let i = 0; i < length; i++) {
+  for (let i2 = 0; i2 < length; i2++) {
     try {
-      const key = keys[i].trim();
+      const key = keys[i2].trim();
       const attrs = _instructions(result, key);
       decrypted = DotenvModule.decrypt(attrs.ciphertext, attrs.key);
       break;
     } catch (error) {
-      if (i + 1 >= length) {
+      if (i2 + 1 >= length) {
         throw error;
       }
     }
@@ -378,6 +417,7 @@ process$2.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path$1.join(process$2.env.APP_
 let win = null;
 let control = null;
 let tray = null;
+let REST_STATUS = "NO";
 function createWindow() {
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width, height } = primaryDisplay.workAreaSize;
@@ -426,28 +466,21 @@ function createControl() {
     height,
     autoHideMenuBar: true,
     frame: false,
-    x: width * -1 + 5,
-    y: h * -1,
+    x: 10,
+    y: 10,
     webPreferences: {
       preload: path$1.join(__dirname, "preload_control.mjs"),
       contextIsolation: true,
       nodeIntegration: false
     }
   };
-  {
-    browserWindowProperties = {
-      ...browserWindowProperties,
-      resizable: false,
-      transparent: true,
-      frame: false,
-      skipTaskbar: true,
-      alwaysOnTop: true
-    };
-  }
   control = new BrowserWindow(browserWindowProperties);
   control.webContents.on("did-finish-load", () => {
     control == null ? void 0 : control.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
     control == null ? void 0 : control.setHasShadow(false);
+    {
+      control == null ? void 0 : control.webContents.openDevTools();
+    }
     control == null ? void 0 : control.webContents.send(
       "main-process-message",
       (/* @__PURE__ */ new Date()).toLocaleString()
@@ -485,6 +518,9 @@ function createTray() {
   tray.setContextMenu(contextMenu);
 }
 app.whenReady().then(() => {
+  restCheck().then((res) => {
+    console.log(`REST status: ${res}`);
+  });
   createWindow();
   createControl();
   OPRServer.win(win);
@@ -493,6 +529,15 @@ app.whenReady().then(() => {
     createTray();
   }
 });
+async function restCheck() {
+  const res = await restCheck$1();
+  if (res.status === "OK" && res.status_code === 200) {
+    REST_STATUS = "OK";
+  } else {
+    REST_STATUS = "NO";
+  }
+  return res.status;
+}
 ipcMain.on("move-window", (event, x, y) => {
   const w = BrowserWindow.fromWebContents(event.sender);
   if (w) {
@@ -530,8 +575,37 @@ ipcMain.handle("json-read", (event, _path) => {
     return { status: false, error: err.message };
   }
 });
+ipcMain.handle("get-forecast", async () => {
+  const res = await getForecast();
+  return res;
+});
+ipcMain.handle(
+  "new-alarm",
+  async (title, subtitle = "No subtitle", description = "No description", subdescription = "No subdescription", creation, trigger, reoccurence_type, weekdays = [], months = [], day = null, year = null) => {
+    let res = await newAlarm(
+      title,
+      subtitle,
+      description,
+      subdescription,
+      creation,
+      trigger,
+      reoccurence_type,
+      weekdays,
+      months,
+      day,
+      year
+    );
+    return res;
+  }
+);
+ipcMain.handle("list-alarm", async () => {
+  const res = await listAlarms();
+  return res;
+});
+i;
 export {
   MAIN_DIST,
   RENDERER_DIST,
+  REST_STATUS,
   VITE_DEV_SERVER_URL
 };

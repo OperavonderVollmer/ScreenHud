@@ -38,4 +38,40 @@ contextBridge.exposeInMainWorld("controlAPI", {
     const res = ipcRenderer.invoke("json-write", path, data);
     return res;
   },
+  getForecast: async () => {
+    const res = await ipcRenderer.invoke("get-forecast");
+    return res;
+  },
+  newAlarm: async (...args) => {
+    const res = await ipcRenderer.invoke("new-alarm", ...args);
+    return res;
+  },
+  listAlarms: async () => {
+    const res = await ipcRenderer.invoke("list-alarms");
+    return res;
+  },
+  startAlarm: async (title) => {
+    const res = await ipcRenderer.invoke("start-alarm", title);
+    return res;
+  },
+  clearAlarm: async (title) => {
+    const res = await ipcRenderer.invoke("clear-alarm", title);
+    return res;
+  },
+  startAllAlarms: async () => {
+    const res = await ipcRenderer.invoke("start-all-alarms");
+    return res;
+  },
+  clearAllAlarms: async () => {
+    const res = await ipcRenderer.invoke("clear-all-alarms");
+    return res;
+  },
+  setAutoSave: async (t) => {
+    const res = await ipcRenderer.invoke("set-auto-save", t);
+    return res;
+  },
+  setAutoStart: async (t) => {
+    const res = await ipcRenderer.invoke("set-auto-start", t);
+    return res;
+  },
 });

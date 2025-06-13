@@ -1,4 +1,5 @@
 {
   "baseColor": "50, 50, 50",
-  "accentColor": "255, 165, 0"
+  "accentColor": "255, 165, 0",
+  "timeFormat": "12"
 }

@@ -1,5 +1,5 @@
 // TODO: Need to change the address
-const address = "http://127.0.0.1:8000/";
+const address = "http://127.0.0.1:56000/";
 
 export async function restCheck() {
   const res = await fetch(address);

@@ -96,7 +96,7 @@ class _Server {
   }
 }
 const OPRServer = new _Server();
-const address = "http://127.0.0.1:8000/";
+const address = "http://127.0.0.1:56000/";
 async function restCheck$1() {
   const res = await fetch(address);
   const data = await res.json();
@@ -132,6 +132,52 @@ async function newAlarm(title, subtitle = "No subtitle", description = "No descr
 }
 async function listAlarms() {
   const res = await fetch(`${address}alarms/list`);
+  const data = await res.json();
+  return data;
+}
+async function startAllAlarms() {
+  const res = await fetch(`${address}alarms/start_all`);
+  const data = await res.json();
+  return data;
+}
+async function startAlarm(title) {
+  const res = await fetch(`${address}alarms/start`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title })
+  });
+  const data = await res.json();
+  return data;
+}
+async function clearAlarm(title) {
+  const res = await fetch(`${address}alarms/clear`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title })
+  });
+  const data = await res.json();
+  return data;
+}
+async function clearAllAlarms() {
+  const res = await fetch(`${address}alarms/clear_all`);
+  const data = await res.json();
+  return data;
+}
+async function setAutoSave(t) {
+  const res = await fetch(`${address}alarms/set_auto_save`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ t })
+  });
+  const data = await res.json();
+  return data;
+}
+async function setAutoStart(t) {
+  const res = await fetch(`${address}alarms/set_auto_start`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ t })
+  });
   const data = await res.json();
   return data;
 }
@@ -180,14 +226,14 @@ function _parseVault(options) {
   const keys = _dotenvKey(options).split(",");
   const length = keys.length;
   let decrypted;
-  for (let i2 = 0; i2 < length; i2++) {
+  for (let i = 0; i < length; i++) {
     try {
-      const key = keys[i2].trim();
+      const key = keys[i].trim();
       const attrs = _instructions(result, key);
       decrypted = DotenvModule.decrypt(attrs.ciphertext, attrs.key);
       break;
     } catch (error) {
-      if (i2 + 1 >= length) {
+      if (i + 1 >= length) {
         throw error;
       }
     }
@@ -602,7 +648,29 @@ ipcMain.handle("list-alarm", async () => {
   const res = await listAlarms();
   return res;
 });
-i;
+ipcMain.handle("start-all-alarms", async () => {
+  await startAllAlarms();
+});
+ipcMain.handle("start-alarm", async (event, title) => {
+  const res = await startAlarm(title);
+  return res;
+});
+ipcMain.handle("clear-alarm", async (event, title) => {
+  const res = await clearAlarm(title);
+  return res;
+});
+ipcMain.handle("clear-all-alarms", async () => {
+  const res = await clearAllAlarms();
+  return res;
+});
+ipcMain.handle("set-auto-save", async (event, t) => {
+  const res = await setAutoSave(t);
+  return res;
+});
+ipcMain.handle("set-auto-start", async (event, t) => {
+  const res = await setAutoStart(t);
+  return res;
+});
 export {
   MAIN_DIST,
   RENDERER_DIST,

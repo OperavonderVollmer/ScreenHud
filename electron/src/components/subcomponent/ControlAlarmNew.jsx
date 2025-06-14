@@ -6,8 +6,8 @@ function ControlAlarmNew(props) {
   const [hrMax, setHrMax] = useState(23);
   const [wasTimeFormat, setWasTimeFormat] = useState("");
   const [timeFormat, setTimeFormat] = useState("");
-  const [hr, setHr] = useState(0);
-  const [min, setMin] = useState(0);
+  const [hr, setHr] = useState(timeFormat === "24" ? "00" : "01");
+  const [min, setMin] = useState("00");
   const [showWeek, setShowWeek] = useState(false);
   const [showMonth, setShowMonth] = useState(false);
   const [showDay, setShowDay] = useState(false);
@@ -15,6 +15,8 @@ function ControlAlarmNew(props) {
   const [months, setMonths] = useState([]);
   const [days, setDays] = useState([]);
   const [year, setYear] = useState(null);
+  const [operation, setOperation] = useState("oneoff");
+  const [oneoffOp, setOneoffOp] = useState("asap");
 
   async function loadConfig() {
     const jsonData = await window.controlAPI.readjson(
@@ -166,9 +168,11 @@ function ControlAlarmNew(props) {
             }
             setHr(e.target.value);
           }}
-          onWheel={(e) => e.target.blur()}
           onBlur={(e) => {
-            const padded = e.target.value.padStart(2, "0");
+            let padded = e.target.value.padStart(2, "0");
+            if (padded > hrMax) {
+              padded = hrMax;
+            }
             setHr(padded);
           }}
         />
@@ -190,9 +194,11 @@ function ControlAlarmNew(props) {
           }}
           pattern="\d*"
           maxLength={2}
-          onWheel={(e) => e.target.blur()}
           onBlur={(e) => {
-            const padded = e.target.value.padStart(2, "0");
+            let padded = e.target.value.padStart(2, "0");
+            if (padded > 59) {
+              padded = 59;
+            }
             setMin(padded);
           }}
         />
@@ -281,173 +287,300 @@ function ControlAlarmNew(props) {
           placeholder="Subdescription (Optional)"
         />
       </label>
-      <h1 className="text-2xl p-2 pb-5">Repeat Every</h1>
-      <div className="mb-5">
-        <button className="OPRToggleButtons" name="week" onClick={repeatButton}>
-          Weekly
+      <div className="pb-5 pt-5">
+        <button
+          name="oneoff"
+          className={`OPRToggleButtons ${
+            operation === "oneoff" ? "selected" : ""
+          }`}
+          onClick={(e) => {
+            setOperation(e.target.name);
+          }}
+          style={{ margin: 0 }}
+        >
+          One-Off
         </button>
         <button
-          className="OPRToggleButtons"
-          name="month"
-          onClick={repeatButton}
+          name="repeating"
+          className={`OPRToggleButtons ${
+            operation === "repeating" ? "selected" : ""
+          }`}
+          onClick={(e) => {
+            setOperation(e.target.name);
+          }}
+          style={{ margin: 0 }}
         >
-          Monthly
-        </button>
-        <button className="OPRToggleButtons" name="day" onClick={repeatButton}>
-          Day
+          Repeating
         </button>
       </div>
-      <label
-        htmlFor="alarm-repeat-week"
-        className="items-stretch flex flex-col flex-start flex-grow max-w-full w-full gap-2"
-        style={{ display: showWeek ? "flex" : "none", alignItems: "stretch" }}
+      <div // For One-Off alarms
+        className="flex flex-col w-full"
+        style={{
+          alignItems: "stretch",
+          display: operation === "oneoff" ? "flex" : "none",
+        }}
       >
-        Weekly
-        <div className="OPRStretch flex flex-row w-full">
-          <button name="7" className="OPRToggleButtons" onClick={weeklyButton}>
-            Su
+        <h1 className="text-2xl p-2 pb-5">One Off</h1>
+        <div className="mb-5">
+          <button
+            className={`OPRToggleButtons ${
+              oneoffOp === "asap" ? "selected" : ""
+            }`}
+            name="asap"
+            onClick={(e) => setOneoffOp(e.target.name)}
+            disabled={showDay}
+          >
+            ASAP
           </button>
-          <button name="1" className="OPRToggleButtons" onClick={weeklyButton}>
-            M
-          </button>
-          <button name="2" className="OPRToggleButtons" onClick={weeklyButton}>
-            T
-          </button>
-          <button name="3" className="OPRToggleButtons" onClick={weeklyButton}>
-            W
-          </button>
-          <button name="4" className="OPRToggleButtons" onClick={weeklyButton}>
-            Th
-          </button>
-          <button name="5" className="OPRToggleButtons" onClick={weeklyButton}>
-            F
-          </button>
-          <button name="6" className="OPRToggleButtons" onClick={weeklyButton}>
-            Sa
+          <button
+            className={`OPRToggleButtons ${
+              oneoffOp === "scheduled" ? "selected" : ""
+            }`}
+            name="scheduled"
+            onClick={(e) => setOneoffOp(e.target.name)}
+          >
+            Scheduled
           </button>
         </div>
-      </label>
-      <label
-        htmlFor="alarm-repeat-month"
-        className="items-stretch flex flex-col flex-start flex-grow max-w-full w-full gap-2"
-        style={{ display: showMonth ? "flex" : "none", alignItems: "stretch" }}
+        <label
+          className="items-stretch flex flex-col flex-start flex-grow max-w-full w-full gap-2"
+          style={{
+            display: oneoffOp === "scheduled" ? "flex" : "none",
+            alignItems: "stretch",
+          }}
+        >
+          Scheduled
+          <div className="OPRStretch flex flex-row w-full">
+            Day:
+            <input type="text" />
+            Month:
+            <input type="text" />
+            Year:
+            <input type="text" />
+          </div>
+        </label>
+      </div>
+      <div // For Repeating alarms
+        className="flex flex-col w-full"
+        style={{
+          alignItems: "stretch",
+          display: operation === "repeating" ? "flex" : "none",
+        }}
       >
-        Monthly
-        <div className="OPRStretch flex flex-col flex-1 box-border max-w-full items-stretch gap-2">
-          <div className="flex flex-row w-full">
+        <h1 className="text-2xl p-2 pb-5">Repeat Every</h1>
+        <div className="mb-5">
+          <button
+            className="OPRToggleButtons"
+            name="week"
+            onClick={repeatButton}
+            disabled={showDay}
+          >
+            Weekly
+          </button>
+          <button
+            className="OPRToggleButtons"
+            name="month"
+            onClick={repeatButton}
+          >
+            Monthly
+          </button>
+          <button
+            className="OPRToggleButtons"
+            name="day"
+            onClick={repeatButton}
+            disabled={showWeek}
+          >
+            Day
+          </button>
+        </div>
+        <label
+          htmlFor="alarm-repeat-week"
+          className="items-stretch flex flex-col flex-start flex-grow max-w-full w-full gap-2"
+          style={{ display: showWeek ? "flex" : "none", alignItems: "stretch" }}
+        >
+          Weekly
+          <div className="OPRStretch flex flex-row w-full">
+            <button
+              name="7"
+              className="OPRToggleButtons"
+              onClick={weeklyButton}
+            >
+              Su
+            </button>
             <button
               name="1"
-              className="OPRToggleButtons months"
-              onClick={monthlyButton}
+              className="OPRToggleButtons"
+              onClick={weeklyButton}
             >
-              Jan
+              M
             </button>
             <button
               name="2"
-              className="OPRToggleButtons months"
-              onClick={monthlyButton}
+              className="OPRToggleButtons"
+              onClick={weeklyButton}
             >
-              Feb
+              T
             </button>
             <button
               name="3"
-              className="OPRToggleButtons months"
-              onClick={monthlyButton}
+              className="OPRToggleButtons"
+              onClick={weeklyButton}
             >
-              Mar
+              W
             </button>
             <button
               name="4"
-              className="OPRToggleButtons months"
-              onClick={monthlyButton}
+              className="OPRToggleButtons"
+              onClick={weeklyButton}
             >
-              Apr
+              Th
             </button>
             <button
               name="5"
-              className="OPRToggleButtons months"
-              onClick={monthlyButton}
+              className="OPRToggleButtons"
+              onClick={weeklyButton}
             >
-              May
+              F
             </button>
             <button
               name="6"
-              className="OPRToggleButtons months"
-              onClick={monthlyButton}
+              className="OPRToggleButtons"
+              onClick={weeklyButton}
             >
-              Jun
+              Sa
             </button>
           </div>
-          <div className="flex flex-row w-full">
-            <button
-              name="7"
-              className="OPRToggleButtons months"
-              onClick={monthlyButton}
-            >
-              Jul
-            </button>
-            <button
-              name="8"
-              className="OPRToggleButtons months"
-              onClick={monthlyButton}
-            >
-              Aug
-            </button>
-            <button
-              name="9"
-              className="OPRToggleButtons months"
-              onClick={monthlyButton}
-            >
-              Sep
-            </button>
-            <button
-              name="10"
-              className="OPRToggleButtons months"
-              onClick={monthlyButton}
-            >
-              Oct
-            </button>
-            <button
-              name="11"
-              className="OPRToggleButtons months"
-              onClick={monthlyButton}
-            >
-              Nov
-            </button>
-            <button
-              name="12"
-              className="OPRToggleButtons months"
-              onClick={monthlyButton}
-            >
-              Dec
-            </button>
-          </div>
-        </div>
-      </label>
-      <label
-        htmlFor="alarm-repeat-day"
-        className="items-stretch flex flex-col flex-start flex-grow max-w-full w-full gap-2"
-        style={{ display: showDay ? "flex" : "none", alignItems: "stretch" }}
-      >
-        Day
-        <div className="OPRStretch flex flex-col flex-grow max-w-full w-full items-stretch gap-2">
-          <div
-            className="grid grid-cols-7 gap-2 OPRCalendar"
-            style={{ display: "grid" }}
-          >
-            {[...Array(31)].map((_, i) => (
+        </label>
+        <label
+          htmlFor="alarm-repeat-month"
+          className="items-stretch flex flex-col flex-start flex-grow max-w-full w-full gap-2"
+          style={{
+            display: showMonth ? "flex" : "none",
+            alignItems: "stretch",
+          }}
+        >
+          Monthly
+          <div className="OPRStretch flex flex-col flex-1 box-border max-w-full items-stretch gap-2">
+            <div className="flex flex-row w-full">
               <button
-                key={i}
-                name={i + 1}
-                className="OPRToggleButtons"
-                onClick={dayButton}
+                name="1"
+                className="OPRToggleButtons months"
+                onClick={monthlyButton}
               >
-                {i + 1}
+                Jan
               </button>
-            ))}
+              <button
+                name="2"
+                className="OPRToggleButtons months"
+                onClick={monthlyButton}
+              >
+                Feb
+              </button>
+              <button
+                name="3"
+                className="OPRToggleButtons months"
+                onClick={monthlyButton}
+              >
+                Mar
+              </button>
+              <button
+                name="4"
+                className="OPRToggleButtons months"
+                onClick={monthlyButton}
+              >
+                Apr
+              </button>
+              <button
+                name="5"
+                className="OPRToggleButtons months"
+                onClick={monthlyButton}
+              >
+                May
+              </button>
+              <button
+                name="6"
+                className="OPRToggleButtons months"
+                onClick={monthlyButton}
+              >
+                Jun
+              </button>
+            </div>
+            <div className="flex flex-row w-full">
+              <button
+                name="7"
+                className="OPRToggleButtons months"
+                onClick={monthlyButton}
+              >
+                Jul
+              </button>
+              <button
+                name="8"
+                className="OPRToggleButtons months"
+                onClick={monthlyButton}
+              >
+                Aug
+              </button>
+              <button
+                name="9"
+                className="OPRToggleButtons months"
+                onClick={monthlyButton}
+              >
+                Sep
+              </button>
+              <button
+                name="10"
+                className="OPRToggleButtons months"
+                onClick={monthlyButton}
+              >
+                Oct
+              </button>
+              <button
+                name="11"
+                className="OPRToggleButtons months"
+                onClick={monthlyButton}
+              >
+                Nov
+              </button>
+              <button
+                name="12"
+                className="OPRToggleButtons months"
+                onClick={monthlyButton}
+              >
+                Dec
+              </button>
+            </div>
           </div>
-        </div>
-      </label>
+        </label>
+        <label
+          htmlFor="alarm-repeat-day"
+          className="items-stretch flex flex-col flex-start flex-grow max-w-full w-full gap-2"
+          style={{ display: showDay ? "flex" : "none", alignItems: "stretch" }}
+        >
+          Day
+          <div className="OPRStretch flex flex-col flex-grow max-w-full w-full items-stretch gap-2">
+            <div
+              className="grid grid-cols-7 gap-2 OPRCalendar"
+              style={{ display: "grid" }}
+            >
+              {[...Array(31)].map((_, i) => (
+                <button
+                  key={i}
+                  name={i + 1}
+                  className="OPRToggleButtons"
+                  onClick={dayButton}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+          </div>
+        </label>
+      </div>
+
+      <div className="flex flex-row-reverse items-stretch flex-grow p-7 gap-5">
+        <button className="OPRButtonAccent OPRSubmitButton">Cancel</button>
+        <button className="OPRButtonAccent OPRSubmitButton">Submit</button>
+      </div>
     </div>
   );
 }

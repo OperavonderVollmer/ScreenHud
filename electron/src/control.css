@@ -145,7 +145,7 @@
   animation: scrollText 20s linear infinite;
 }
 
-.OPRAlarmButton {
+.OPRButtonAccent {
   transition: transform 0.1s ease-out, background-color 0.1s ease-out;
   padding: 0.5vw;
   border-radius: 20%;
@@ -153,14 +153,32 @@
   background-color: var(--accentThemedButtonColor);
 }
 
-.OPRAlarmButton:hover {
+.OPRButtonAccent:hover {
   transform: scale(1.2);
   background-color: var(--hoverAccentThemedButtonColor);
 }
 
-.OPRAlarmButton:active {
+.OPRButtonAccent:active {
   transform: scale(0.9);
   background-color: var(--clickAccentThemedButtonColor);
+}
+
+.OPRButtonBase {
+  transition: transform 0.1s ease-out, background-color 0.1s ease-out;
+  padding: 0.5vw;
+  border-radius: 20%;
+  cursor: pointer;
+  background-color: var(--baseThemedButtonColor);
+}
+
+.OPRButtonBase:hover {
+  transform: scale(1.2);
+  background-color: var(--hoverBaseThemedButtonColor);
+}
+
+.OPRButtonBase:active {
+  transform: scale(0.9);
+  background-color: var(--clickBaseThemedButtonColor);
 }
 
 .OPRControlInfo {
@@ -261,25 +279,51 @@
   font-size: 1rem;
 }
 
-.OPRToggleButtons.unselected:hover {
+.OPRToggleButtons.unselected:not(:disabled):hover {
   transform: scale(1.1);
   color: var(--darkerBaseColor);
   background-color: var(--hoverAccentThemedButtonColor);
 }
 
-.OPRToggleButtons:active {
+.OPRToggleButtons:not(:disabled):active {
   transform: scale(0.9);
   background-color: var(--clickAccentThemedButtonColor);
 }
 
-.OPRToggleButtons.selected {
+.OPRToggleButtons.selected:not(:disabled) {
   transform: scale(0.9);
   color: var(--darkerBaseColor);
   background-color: var(--clickAccentThemedButtonColor);
 }
 
-.OPRCalendar button {
-  /* min-width: 4.5vw !important; */
+.OPRToggleButtons:disabled {
+  transform: scale(0.9);
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.OPRSubmitButton {
+  border-radius: 0.5rem;
+  font-size: 1.2rem;
+  background-color: var(--darkerBaseColor);
+  color: var(--accentColor);
+  text-align: center;
+  height: 3rem;
+  border: none;
+  justify-content: center;
+  font-size: 1rem;
+  width: 100%;
+}
+
+.OPRSubmitButton:hover {
+  transform: scale(1.05);
+  color: var(--darkerBaseColor);
+  background-color: var(--hoverAccentThemedButtonColor);
+}
+
+.OPRSubmitButton:active {
+  transform: scale(0.99);
+  background-color: var(--clickAccentThemedButtonColor);
 }
 
 .OPRStretch {

@@ -49,7 +49,7 @@ const ControlAlarm = (props) => {
           </div>
         </div>
         <div className="flex flex-row items-center justify-end gap-x-[1vw]">
-          <button className={`OPRAlarmButton`}>
+          <button className={`OPRButtonAccent`}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -63,7 +63,7 @@ const ControlAlarm = (props) => {
               />
             </svg>
           </button>
-          <button className={`OPRAlarmButton`}>
+          <button className={`OPRButtonAccent`}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -74,7 +74,7 @@ const ControlAlarm = (props) => {
               <path d="M5.25 5.25a3 3 0 0 0-3 3v10.5a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3V13.5a.75.75 0 0 0-1.5 0v5.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V8.25a1.5 1.5 0 0 1 1.5-1.5h5.25a.75.75 0 0 0 0-1.5H5.25Z" />
             </svg>
           </button>
-          <button className={`OPRAlarmButton`}>
+          <button className={`OPRButtonAccent`}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -88,7 +88,7 @@ const ControlAlarm = (props) => {
               />
             </svg>
           </button>
-          <button className={`OPRAlarmButton`}>
+          <button className={`OPRButtonAccent`}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -102,7 +102,7 @@ const ControlAlarm = (props) => {
               />
             </svg>
           </button>
-          <button className={`OPRAlarmButton`}>
+          <button className={`OPRButtonAccent`}>
             <svg
               className="w-[2vw] h-[2vw]"
               xmlns="http://www.w3.org/2000/svg"

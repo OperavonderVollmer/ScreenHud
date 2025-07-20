@@ -1,7 +1,7 @@
 var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-import { app, BrowserWindow, ipcMain, screen, Tray, Menu } from "electron";
+import { app, BrowserWindow, ipcMain, screen } from "electron";
 import { fileURLToPath } from "node:url";
 import path$1 from "node:path";
 import { Buffer as Buffer$1 } from "buffer";
@@ -25,6 +25,10 @@ class _Server {
   win(mainWindow) {
     this.mainWindow = mainWindow;
   }
+  /**
+   * Sets the control window reference for this server instance.
+   * @param {BrowserWindow} controlWindow - The control window to be set.
+   */
   control(controlWindow) {
     this.controlWindow = controlWindow;
   }
@@ -107,27 +111,18 @@ async function getForecast() {
   const data = await res.json();
   return data;
 }
-async function newAlarm(title, subtitle = "No subtitle", description = "No description", subdescription = "No subdescription", creation = "", trigger = "", reoccurence_type = "NONE", weekdays = [], months = [], day = null, year = null) {
-  const payload = {
-    title,
-    subtitle,
-    description,
-    subdescription,
-    creation,
-    trigger,
-    reoccurence_type,
-    weekdays,
-    months,
-    day,
-    year
-  };
+async function newAlarm(payload) {
+  console.log(
+    `Payload to send ${address}alarms/new:
+${JSON.stringify(payload)} `
+  );
   const res = await fetch(`${address}alarms/new`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
-    // <-- Do NOT nest under "alarm"
   });
   const data = await res.json();
+  console.log(data);
   return data;
 }
 async function listAlarms() {
@@ -462,7 +457,6 @@ const RENDERER_DIST = path$1.join(process$2.env.APP_ROOT, "dist");
 process$2.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path$1.join(process$2.env.APP_ROOT, "public") : RENDERER_DIST;
 let win = null;
 let control = null;
-let tray = null;
 let REST_STATUS = "NO";
 function createWindow() {
   const primaryDisplay = screen.getPrimaryDisplay();
@@ -478,22 +472,12 @@ function createWindow() {
       nodeIntegration: false
     }
   };
-  {
-    browserWindowProperties = {
-      ...browserWindowProperties,
-      transparent: true,
-      frame: false,
-      skipTaskbar: true,
-      alwaysOnTop: true,
-      focusable: false
-    };
-  }
   win = new BrowserWindow(browserWindowProperties);
   win.webContents.on("did-finish-load", () => {
     win == null ? void 0 : win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
     win == null ? void 0 : win.setHasShadow(false);
     {
-      win == null ? void 0 : win.setIgnoreMouseEvents(true, { forward: true });
+      win == null ? void 0 : win.webContents.openDevTools();
     }
   });
   if (VITE_DEV_SERVER_URL) {
@@ -549,20 +533,6 @@ app.on("activate", () => {
     createWindow();
   }
 });
-function createTray() {
-  const trayIcon = path$1.join(process$2.env.VITE_PUBLIC, "HUD2.png");
-  tray = new Tray(trayIcon);
-  const contextMenu = Menu.buildFromTemplate([
-    {
-      label: "Exit",
-      click: () => {
-        app.quit();
-      }
-    }
-  ]);
-  tray.setToolTip("ScreenHud");
-  tray.setContextMenu(contextMenu);
-}
 app.whenReady().then(() => {
   restCheck().then((res) => {
     console.log(`REST status: ${res}`);
@@ -571,9 +541,6 @@ app.whenReady().then(() => {
   createControl();
   OPRServer.win(win);
   OPRServer.startServer();
-  {
-    createTray();
-  }
 });
 async function restCheck() {
   const res = await restCheck$1();
@@ -625,25 +592,10 @@ ipcMain.handle("get-forecast", async () => {
   const res = await getForecast();
   return res;
 });
-ipcMain.handle(
-  "new-alarm",
-  async (title, subtitle = "No subtitle", description = "No description", subdescription = "No subdescription", creation, trigger, reoccurence_type, weekdays = [], months = [], day = null, year = null) => {
-    let res = await newAlarm(
-      title,
-      subtitle,
-      description,
-      subdescription,
-      creation,
-      trigger,
-      reoccurence_type,
-      weekdays,
-      months,
-      day,
-      year
-    );
-    return res;
-  }
-);
+ipcMain.handle("new-alarm", async (_event, payload) => {
+  let res = await newAlarm(payload);
+  return res;
+});
 ipcMain.handle("list-alarm", async () => {
   const res = await listAlarms();
   return res;
@@ -670,6 +622,11 @@ ipcMain.handle("set-auto-save", async (event, t) => {
 ipcMain.handle("set-auto-start", async (event, t) => {
   const res = await setAutoStart(t);
   return res;
+});
+ipcMain.handle("new-card", async (event, message) => {
+  console.log("New card:", message);
+  win.webContents.send("type-change", "card");
+  win.webContents.send("payload-send", message);
 });
 export {
   MAIN_DIST,

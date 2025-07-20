@@ -46,7 +46,7 @@ let win = null;
 let control = null;
 let tray = null;
 
-const MAINWINDOW_DEBUG_MODE = false;
+const MAINWINDOW_DEBUG_MODE = true;
 const CONTROL_DEBUG_MODE = true;
 export let REST_STATUS = "NO";
 
@@ -272,37 +272,10 @@ ipcMain.handle("get-forecast", async () => {
   return res;
 });
 
-ipcMain.handle(
-  "new-alarm",
-  async (
-    title,
-    subtitle = "No subtitle",
-    description = "No description",
-    subdescription = "No subdescription",
-    creation, // Must be in "YYYY-MM-DD" format
-    trigger, // Must be in "HH:MM:SS" format
-    reoccurence_type,
-    weekdays = [],
-    months = [],
-    day = null,
-    year = null // Only used for NONE alarms
-  ) => {
-    let res = await OPRApi.newAlarm(
-      title,
-      subtitle,
-      description,
-      subdescription,
-      creation,
-      trigger,
-      reoccurence_type,
-      weekdays,
-      months,
-      day,
-      year
-    );
-    return res;
-  }
-);
+ipcMain.handle("new-alarm", async (_event, payload) => {
+  let res = await OPRApi.newAlarm(payload);
+  return res;
+});
 
 ipcMain.handle("list-alarm", async () => {
   const res = await OPRApi.listAlarms();
@@ -336,4 +309,10 @@ ipcMain.handle("set-auto-save", async (event, t) => {
 ipcMain.handle("set-auto-start", async (event, t) => {
   const res = await OPRApi.setAutoStart(t);
   return res;
+});
+
+ipcMain.handle("new-card", async (event, message) => {
+  console.log("New card:", message);
+  win.webContents.send("type-change", "card");
+  win.webContents.send("payload-send", message);
 });

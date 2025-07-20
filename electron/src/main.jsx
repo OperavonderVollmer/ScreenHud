@@ -5,26 +5,27 @@ import Emitter from "./emitters/Emitter.js";
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-    <React.StrictMode>
-        <App />
-    </React.StrictMode>
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
 );
 
 let type = "card";
 
 window.mainAPI.on("type-change", (_event, newType) => {
-    type = newType;
+  type = newType;
 });
 
 window.mainAPI.on("payload-send", (_event, results) => {
-    console.log("Received payload:", results);
+  console.log("Received payload:", results);
 
-    switch (type) {
-        case "card":
-            Emitter.publishList("OPR:new_card", results);
-            break;
-        default:
-            console.log("Unknown payload type:", type);
-            break;
-    }
+  switch (type) {
+    case "card":
+      console.log("Publishing new card");
+      Emitter.publishList("OPR:new_card", results);
+      break;
+    default:
+      console.log("Unknown payload type:", type);
+      break;
+  }
 });

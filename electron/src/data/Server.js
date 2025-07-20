@@ -17,6 +17,11 @@ class _Server {
         this.mainWindow = mainWindow;
     }
 
+/**
+ * Sets the control window reference for this server instance.
+ * @param {BrowserWindow} controlWindow - The control window to be set.
+ */
+
     control(controlWindow) {
         this.controlWindow = controlWindow;
     }

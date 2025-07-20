@@ -1,113 +1,206 @@
 @import "tailwindcss";
 
+.colorVariables {
+  --baseColor: #ffffff;
+  --lighterBaseColor: #ffffff;
+  --darkerBaseColor: #ffffff;
+  --baseButtonColor: #ffffff;
+  --hoverBaseButtonColor: #ffffff;
+  --clickBaseButtonColor: #ffffff;
+  --baseThemedButtonColor: #ffffff;
+  --hoverBaseThemedButtonColor: #ffffff;
+  --clickBaseThemedButtonColor: #ffffff;
+
+  --accentColor: #ffffff;
+  --lighterAccentColor: #ffffff;
+  --darkerAccentColor: #ffffff;
+  --accentButtonColor: #ffffff;
+  --hoverAccentButtonColor: #ffffff;
+  --clickAccentButtonColor: #ffffff;
+  --accentThemedButtonColor: #ffffff;
+  --hoverAccentThemedButtonColor: #ffffff;
+  --clickAccentThemedButtonColor: #ffffff;
+}
+
+.baseColor {
+  background-color: var(--baseColor);
+}
+
+.lighterBaseColor {
+  background-color: var(--lighterBaseColor);
+}
+
+.darkerBaseColor {
+  background-color: var(--darkerBaseColor);
+}
+
+.baseButtonColor {
+  background-color: var(--baseButtonColor);
+}
+
+.hoverBaseButtonColor {
+  background-color: var(--hoverBaseButtonColor);
+}
+
+.clickBaseButtonColor {
+  background-color: var(--clickBaseButtonColor);
+}
+
+.baseThemedButtonColor {
+  background-color: var(--baseThemedButtonColor);
+}
+
+.hoverBaseThemedButtonColor {
+  background-color: var(--hoverBaseThemedButtonColor);
+}
+
+.clickBaseThemedButtonColor {
+  background-color: var(--clickBaseThemedButtonColor);
+}
+
+.accentColor {
+  background-color: var(--accentColor);
+}
+
+.lighterAccentColor {
+  background-color: var(--lighterAccentColor);
+}
+
+.darkerAccentColor {
+  background-color: var(--darkerAccentColor);
+}
+
+.accentButtonColor {
+  background-color: var(--accentButtonColor);
+}
+
+.hoverAccentButtonColor {
+  background-color: var(--hoverAccentButtonColor);
+}
+
+.clickAccentButtonColor {
+  background-color: var(--clickAccentButtonColor);
+}
+
+.accentThemedButtonColor {
+  background-color: var(--accentThemedButtonColor);
+}
+
+.hoverAccentThemedButtonColor {
+  background-color: var(--hoverAccentThemedButtonColor);
+}
+
+.clickAccentThemedButtonColor {
+  background-color: var(--clickAccentThemedButtonColor);
+}
+
 @keyframes card-fading-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
 
-    0%{
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    100%{
-        opacity: 1;
-        transform: translateY(0);
-    }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes card-fading-out {
-    0% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 
-    100% {
-        opacity: 0;
-        transform: translateY(10px) scale(0.2);
-        transform-origin: center;
-    }
+  100% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.2);
+    transform-origin: center;
+  }
 }
 
 @keyframes card-exit-stage-right {
-    0% {
-        opacity: 1;
-    }
+  0% {
+    opacity: 1;
+  }
 
-    20%{
-        transform: translateX(-20px);
-    }
+  20% {
+    transform: translateX(-20px);
+  }
 
-    100% {
-        opacity: 0;
-        transform: translateX(100px);
-    }
+  100% {
+    opacity: 0;
+    transform: translateX(100px);
+  }
 }
-
-
-
 
 .mainapp::-webkit-scrollbar {
-    display: none;
-}
-  
-.mainapp{
-    overflow: hidden;
+  display: none;
 }
 
-
-.card{
-    @apply flex transition-all flex-col duration-300 ease-in hover:scale-115 rounded-2xl flex-wrap justify-between p-2 min-h-[10vh] text-red-50;
-    background-color: rgba(0, 0, 0, 0.625);
-    transition: all 0.3s ease-in-out; 
+.mainapp {
+  overflow: hidden;
 }
 
-
-.card h4{
-    @apply text-xs font-light
+.card {
+  @apply flex transition-all flex-col duration-300 ease-in hover:scale-115 rounded-2xl flex-wrap justify-between p-2 min-h-[10vh] text-red-50;
+  /* background-color: rgba(0, 0, 0, 0.625); */
+  background-color: var(--baseColor);
+  transition: all 0.3s ease-in-out;
+  font-size: smaller;
+  span {
+    color: var(--accentColor);
+  }
 }
 
-.card span{
-    @apply text-lg font-semibold
+.card h4 {
+  @apply text-xs font-light;
 }
 
-.card p{
-    @apply font-medium text-[0.6rem] self-end
+.card span {
+  @apply text-lg font-semibold;
+}
+
+.card p {
+  @apply font-medium text-[0.6rem] self-end;
 }
 
 @keyframes card-enter-animation {
-    0% {
-        opacity: 0;
-        transform: translateX(+20px);
-    }
+  0% {
+    opacity: 0;
+    transform: translateX(+20px);
+  }
 
-    20%{
-        transform: translateX(-20px);
-    }
+  20% {
+    transform: translateX(-20px);
+  }
 
-    100% {
-        opacity: 1;
-        transform: translateX(0);
-    }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @keyframes card-exit-animation {
-    0% {
-        opacity: 1;
-        transform: translateX(0);
-    }
+  0% {
+    opacity: 1;
+    transform: translateX(0);
+  }
 
-    20%{
-        transform: translateX(-20px);
-    }
+  20% {
+    transform: translateX(-20px);
+  }
 
-    100% {
-        opacity: 0;
-        transform: translateX(20px);
-    }
+  100% {
+    opacity: 0;
+    transform: translateX(20px);
+  }
 }
 
 .card-transition-enter-active {
-    animation: card-enter-animation 0.3s ease-out forwards;
+  animation: card-enter-animation 0.3s ease-out forwards;
 }
 
 .card-transition-exit-active {
-    animation: card-exit-animation 0.3s ease-in forwards;
+  animation: card-exit-animation 0.3s ease-in forwards;
 }

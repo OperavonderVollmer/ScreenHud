@@ -27,40 +27,19 @@ export async function getForecast() {
   return data;
 }
 
-export async function newAlarm(
-  title,
-  subtitle = "No subtitle",
-  description = "No description",
-  subdescription = "No subdescription",
-  creation = "", // Must be in "YYYY-MM-DD" format
-  trigger = "", // Must be in "HH:MM:SS" format
-  reoccurence_type = "NONE",
-  weekdays = [],
-  months = [],
-  day = null, // Correct key name (singular)
-  year = null // Optional
-) {
-  const payload = {
-    title,
-    subtitle,
-    description,
-    subdescription,
-    creation,
-    trigger,
-    reoccurence_type,
-    weekdays,
-    months,
-    day,
-    year,
-  };
+export async function newAlarm(payload) {
+  console.log(
+    `Payload to send ${address}alarms/new:\n${JSON.stringify(payload)} `
+  );
 
   const res = await fetch(`${address}alarms/new`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload), // <-- Do NOT nest under "alarm"
+    body: JSON.stringify(payload),
   });
 
   const data = await res.json();
+  console.log(data);
   return data;
 }
 

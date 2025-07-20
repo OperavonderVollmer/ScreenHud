@@ -42,8 +42,9 @@ contextBridge.exposeInMainWorld("controlAPI", {
     const res = await ipcRenderer.invoke("get-forecast");
     return res;
   },
-  newAlarm: async (...args) => {
-    const res = await ipcRenderer.invoke("new-alarm", ...args);
+
+  newAlarm: async (payload) => {
+    const res = await ipcRenderer.invoke("new-alarm", payload);
     return res;
   },
   listAlarms: async () => {
@@ -72,6 +73,10 @@ contextBridge.exposeInMainWorld("controlAPI", {
   },
   setAutoStart: async (t) => {
     const res = await ipcRenderer.invoke("set-auto-start", t);
+    return res;
+  },
+  newCard: async (message) => {
+    const res = await ipcRenderer.invoke("new-card", message);
     return res;
   },
 });

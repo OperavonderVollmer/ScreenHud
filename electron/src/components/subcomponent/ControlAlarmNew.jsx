@@ -14,6 +14,7 @@ function ControlAlarmNew(props) {
   const [weekdays, setWeekdays] = useState([]);
   const [months, setMonths] = useState([]);
   const [days, setDays] = useState([]);
+  const [daily, setDaily] = useState(false);
   const [year, setYear] = useState(null);
   const [operation, setOperation] = useState("oneoff");
   const [oneoffOp, setOneoffOp] = useState("asap");
@@ -55,8 +56,108 @@ function ControlAlarmNew(props) {
     }
   }, [timeFormat]);
 
-  async function newAlarm() {
-    window.controlAPI.newAlarm();
+  async function submitAlarm() {
+    // title: str
+    // subtitle: str = "No subtitle"
+    // description: str = "No description"
+    // subdescription: str = "No subdescription"
+    // creation: datetime.date
+    // trigger: datetime.time
+    // reoccurence_type: ReoccurenceType
+    // weekdays: Optional[list[int]] = None
+    // months: Optional[list[int]] = None
+    // day: Optional[list[int]] = None               # 1-31
+    // year: Optional[int] = None              # NOTE: ONLY USED FOR ONE-OFF ALARMS
+    const p_title = document.getElementById("alarm-title").value;
+    const p_subtitle = document.getElementById("alarm-subtitle").value;
+    const p_description = document.getElementById("alarm-description").value;
+    const p_subdescription = document.getElementById(
+      "alarm-subdescription"
+    ).value;
+    const today_date = new Date();
+    const pad = (n) => n.toString().padStart(2, "0");
+    const p_creation = `${today_date.getFullYear()}-${pad(
+      today_date.getMonth() + 1
+    )}-${pad(today_date.getDate())}`;
+    const p_trigger = `${pad(hr)}:${pad(min)}:00`;
+    let p_reoccurence_type = "";
+    let p_weekdays = [];
+    let p_months = [];
+    let p_days = [];
+    let p_year = null;
+
+    if (operation === "oneoff") {
+      p_reoccurence_type = "NONE";
+      if (oneoffOp === "asap") {
+        p_year = today_date.getFullYear();
+      } else if (oneoffOp === "scheduled") {
+        const dateString = document.getElementById("alarm-oneoff-date").value; // "2025-07-13"
+
+        if (dateString) {
+          const [year, month, day] = dateString.split("-").map(Number);
+          p_year = year;
+          p_month = month;
+          p_days = day;
+        } else {
+          // Handle the case where no date is selected
+          console.warn("No date selected for scheduled one-off alarm.");
+        }
+      }
+    } else if (operation === "repeating") {
+      if (showWeek && !showMonth) {
+        p_reoccurence_type = "WEEKLY";
+        p_weekdays = weekdays;
+      } else if (showMonth) {
+        p_reoccurence_type = "PERIODIC";
+        p_months = months;
+        p_days = days;
+      } else if (daily) {
+        p_reoccurence_type = "DAILY";
+        p_days = days;
+      }
+    }
+
+    console.log(
+      `Alarm Details
+      Title: ${p_title},
+      Subtitle: ${p_subtitle},
+      Description: ${p_description},
+      Subdescription: ${p_subdescription},
+      Creation: ${p_creation},
+      Trigger: ${p_trigger},
+      Reoccurence Type: ${p_reoccurence_type},
+      Weekdays: ${p_weekdays},
+      Months: ${p_months},
+      Days: ${p_days},
+      Year: ${p_year}`
+    );
+
+    window.controlAPI
+      .newAlarm({
+        title: p_title,
+        subtitle: p_subtitle,
+        description: p_description,
+        subdescription: p_subdescription,
+        creation: p_creation,
+        trigger: p_trigger,
+        reoccurence_type: p_reoccurence_type,
+        weekdays: p_weekdays,
+        months: p_months,
+        days: p_days,
+        year: p_year,
+      })
+      .then((res) => {
+        console.log(res);
+        if (res.status_code == 200) {
+          // control API > response to main js > create a toast at the other window
+          // console.log(`Alarm "${p_title}" created successfully!`);
+          window.controlAPI.newCard({
+            source: "New alarm",
+            message: `Alarm "${p_title}" created successfully!`,
+          });
+        }
+      })
+      .catch((err) => console.error(err));
   }
 
   function repeatButton(e) {
@@ -350,13 +451,19 @@ function ControlAlarmNew(props) {
           }}
         >
           Scheduled
-          <div className="OPRStretch flex flex-row w-full">
-            Day:
+          <div className="OPRStretch flex flex-row w-full items-stretch justify-center">
+            {/* Day:
             <input type="text" />
             Month:
             <input type="text" />
             Year:
-            <input type="text" />
+            <input type="text" /> */}
+            <input
+              className="OPRScheduled"
+              type="date"
+              min={new Date().toISOString().split("T")[0]}
+              id="alarm-oneoff-date"
+            />
           </div>
         </label>
       </div>
@@ -556,7 +663,19 @@ function ControlAlarmNew(props) {
           className="items-stretch flex flex-col flex-start flex-grow max-w-full w-full gap-2"
           style={{ display: showDay ? "flex" : "none", alignItems: "stretch" }}
         >
-          Day
+          <div className="flex flex-row w-full gap-3.5">
+            Day
+            <button
+              className="OPRToggleButtons"
+              onClick={(e) => {
+                setDaily(!daily);
+                e.target.classList.toggle("selected");
+              }}
+            >
+              Daily
+            </button>
+          </div>
+
           <div className="OPRStretch flex flex-col flex-grow max-w-full w-full items-stretch gap-2">
             <div
               className="grid grid-cols-7 gap-2 OPRCalendar"
@@ -579,7 +698,12 @@ function ControlAlarmNew(props) {
 
       <div className="flex flex-row-reverse items-stretch flex-grow p-7 gap-5">
         <button className="OPRButtonAccent OPRSubmitButton">Cancel</button>
-        <button className="OPRButtonAccent OPRSubmitButton">Submit</button>
+        <button
+          className="OPRButtonAccent OPRSubmitButton"
+          onClick={() => submitAlarm()}
+        >
+          Submit
+        </button>
       </div>
     </div>
   );
